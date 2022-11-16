@@ -1,0 +1,15 @@
+{
+    "name": "supermetrolog/synchronizer",
+    "description": "files synchronizer between servers",
+    "autoload": {
+        "psr-4": {
+            "Supermetrolog\\Synchronizer\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "supermetrolog"
+        }
+    ],
+    "require": {}
+}
