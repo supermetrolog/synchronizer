@@ -11,5 +11,7 @@
             "name": "supermetrolog"
         }
     ],
-    "require": {}
+    "require": {
+        "phpunit/phpunit": "^9.5"
+    }
 }
