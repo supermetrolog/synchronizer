@@ -5,6 +5,10 @@ namespace Supermetrolog\Synchronizer\services\sync;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileRepositoryInterface;
 
+/**
+ * 
+ * @property FileInterface[] $changedFiles;
+ */
 class Synchronizer
 {
     private array $changedFiles;
@@ -32,6 +36,9 @@ class Synchronizer
             }
         }
     }
+    /**
+     * @return FileInterface[]
+     */
     public function getChangedFiles(): array
     {
         return $this->changedFiles;

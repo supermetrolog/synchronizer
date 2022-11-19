@@ -21,6 +21,9 @@ class Stream implements FileStreamInterface
         }
         closedir($handle);
     }
+    /**
+     * @return File[]
+     */
     public function readRecursive(): Generator
     {
         yield from $this->_readRecursive($this->dirpath);
