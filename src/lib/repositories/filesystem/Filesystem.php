@@ -25,17 +25,34 @@ class Filesystem implements FileRepositoryInterface
     {
         return new Stream($this->dirpath);
     }
-    public function findByFullname(string $fullname): ?FileInterface
+    public function findFile(FileInterface $findedFile): ?FileInterface
     {
-        $fullname = realpath($fullname);
+        $fullname = realpath($this->dirpath . $findedFile->getRelativePath());
+        if (!$fullname) return null;
         $stream = $this->createStream();
 
         foreach ($stream->readRecursive() as $file) {
-            if ($file->getFullname() == $fullname) {
+            if ($file->getFullname() == $fullname && $file->getName() == $findedFile->getName()) {
                 return $file;
             }
         }
-
         return null;
+    }
+    public function getDirpath(): string
+    {
+        return $this->dirpath;
+    }
+    public function create(FileInterface $file, string $relativePath): bool
+    {
+        $fullname = $this->dirpath . $relativePath . "/" . $file->getName();
+        if ($file->isDir()) {
+            if (file_exists($fullname)) return true;
+            return mkdir($fullname, 0777);
+        }
+        $result = file_put_contents($fullname, $file->getContent());
+        if ($result !== false) {
+            return true;
+        }
+        return false;
     }
 }

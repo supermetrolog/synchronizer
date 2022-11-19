@@ -26,17 +26,46 @@ class FileSystemTest  extends TestCase
         $this->assertInstanceOf(Stream::class, $stream);
     }
 
-    public function testFindByFullnameValid()
+    public function testFindFile()
     {
         $baseDir = __DIR__ . "/testfolder";
-        $fileForFind = $baseDir . "/children/test3.txt";
-        echo $fileForFind . "\n";
+        $fileForFindRelPath = "/children/test3.txt";
         $fs = new Filesystem($baseDir);
-        $file = $fs->findByFullname($fileForFind);
+        $fileForFind = new File("test3.txt", $baseDir . $fileForFindRelPath, $fileForFindRelPath, null);
+        $file = $fs->findFile($fileForFind);
+        $this->assertEquals("test3.txt", $file->getName());
         $this->assertNotNull($file);
         $this->assertInstanceOf(File::class, $file);
-        $this->assertSame(realpath($fileForFind), $file->getFullname());
-        // C:\OpenServer\domains\synchronizer\tests\lib\repositories\filesystem\testfolder/children/test3.txt
-        // C:\OpenServer\domains\synchronizer\tests\lib\repositories\filesystem\testfolder\children\test3.txt
+        $this->assertSame(realpath($baseDir = __DIR__ . "/testfolder/" . $fileForFindRelPath), $file->getFullname());
+    }
+    public function testFindDir()
+    {
+        $baseDir = __DIR__ . "/testfolder";
+        $fileForFindRelPath = "/children";
+        $fs = new Filesystem($baseDir);
+        $fileForFind = new File("children", $baseDir . $fileForFindRelPath, $fileForFindRelPath, null);
+        $file = $fs->findFile($fileForFind);
+        $this->assertEquals("children", $file->getName());
+        $this->assertNotNull($file);
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertSame(realpath($baseDir = __DIR__ . "/testfolder/" . $fileForFindRelPath), $file->getFullname());
+    }
+    public function testCreate()
+    {
+        $baseDir = __DIR__ . "/testfolder";
+        $fs = new Filesystem($baseDir);
+        $fileForCreate = new File("fuck.txt", $baseDir, "", null);
+        $fileForCreate->loadContent("fuck the police");
+        $fs->create($fileForCreate, $fileForCreate->getRelativePath());
+        $this->assertTrue(file_exists("$baseDir/fuck.txt"));
+        unlink("$baseDir/fuck.txt");
+    }
+    public function testCreateAlreadyExistFolder()
+    {
+        $baseDir = __DIR__ . "/testfolder";
+        $fs = new Filesystem($baseDir);
+        $fileForCreate = new File("children", $baseDir, "", null);
+        $fs->create($fileForCreate, $fileForCreate->getRelativePath());
+        $this->assertTrue(file_exists("$baseDir/children"));
     }
 }

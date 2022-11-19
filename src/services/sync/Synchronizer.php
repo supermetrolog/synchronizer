@@ -2,6 +2,7 @@
 
 namespace Supermetrolog\Synchronizer\services\sync;
 
+use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileRepositoryInterface;
 
 class Synchronizer
@@ -20,9 +21,9 @@ class Synchronizer
     public function loadUpdatedData(): void
     {
         $stream = $this->baseFileRepository->createStream();
-        foreach ($stream->read() as $file) {
-            if ($file->getName() == "." || $file->getName() == "..") continue;
-            if ($targetEntry = $this->targetFileRepository->findByFullname($file->getFullname())) {
+        foreach ($stream->readRecursive() as $file) {
+            if ($file->isCurrentDirPointer() || $file->isPreventDirPointer()) continue;
+            if ($targetEntry = $this->targetFileRepository->findFile($file)) {
                 if ($targetEntry->getUpdatedTime() > $file->getUpdatedTime()) {
                     $this->changedFiles[] = $file;
                 }
@@ -31,28 +32,39 @@ class Synchronizer
             }
         }
     }
-    // public function loadUpdatedData(): void
-    // {
-    //     $handle = opendir($this->baseDirPath);
-    //     while ($entry = readdir($handle)) {
-
-    //         $baseEntry = $this->baseDirPath . "/$entry";
-    //         $targetEntry = $this->targetDirPath . "/$entry";
-
-    //         if ($entry == "." || $entry == "..") continue;
-    //         if (file_exists($targetEntry)) {
-    //             if (filemtime($targetEntry) > filemtime($baseEntry)) {
-    //                 $this->changedFiles[] = $baseEntry;
-    //             }
-    //         } else {
-    //             $this->changedFiles[] = $baseEntry;
-    //         }
-    //     }
-    //     closedir($handle);
-    // }
-
+    public function getChangedFiles(): array
+    {
+        return $this->changedFiles;
+    }
     public function changedFilesExists(): bool
     {
         return count($this->changedFiles) != 0;
+    }
+
+    public function sync()
+    {
+        foreach ($this->changedFiles as $file) {
+            if ($file->getParent() === null) {
+                $this->createFileInTargetRepo($file);
+                continue;
+            }
+            $this->createParentDir($file->getParent());
+            $this->createFileInTargetRepo($file);
+        }
+    }
+
+    private function createParentDir(FileInterface $file)
+    {
+        if ($file->getParent() === null) {
+            $this->createFileInTargetRepo($file);
+            return;
+        }
+        if (!$this->targetFileRepository->findFile($file->getParent())) {
+            $this->createParentDir($file->getParent());
+        }
+    }
+    private function createFileInTargetRepo(FileInterface $file): bool
+    {
+        return $this->targetFileRepository->create($file, $file->getRelativePath());
     }
 }

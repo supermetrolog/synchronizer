@@ -17,7 +17,7 @@ class Stream implements FileStreamInterface
     {
         $handle = opendir($this->dirpath);
         while ($filename = readdir($handle)) {
-            yield new File($filename, $this->dirpath);
+            yield new File($filename, $this->dirpath, "", null);
         }
         closedir($handle);
     }
@@ -25,17 +25,18 @@ class Stream implements FileStreamInterface
     {
         yield from $this->_readRecursive($this->dirpath);
     }
-    private function _readRecursive($dirpath): Generator
+    private function _readRecursive(string $dirpath, ?File $parent = null): Generator
     {
         $handle = opendir($dirpath);
         while ($filename = readdir($handle)) {
-            $file = new File($filename, $dirpath);
+            $relativePath = str_replace($this->dirpath, "", $dirpath);
+            $file = new File($filename, $dirpath, $relativePath, $parent);
             if (
                 $file->isDir() &&
                 !$file->isCurrentDirPointer() &&
                 !$file->isPreventDirPointer()
             ) {
-                yield from $this->_readRecursive($file->getFullname());
+                yield from $this->_readRecursive($file->getFullname(), $file);
             }
             yield $file;
         }

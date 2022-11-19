@@ -3,14 +3,13 @@
     "description": "files synchronizer between servers",
     "autoload": {
         "psr-4": {
-            "Supermetrolog\\Synchronizer\\": "src/"
+            "Supermetrolog\\Synchronizer\\": "src/",
+            "tests\\": "tests/"
         }
     },
-    "authors": [
-        {
-            "name": "supermetrolog"
-        }
-    ],
+    "authors": [{
+        "name": "supermetrolog"
+    }],
     "require": {
         "phpunit/phpunit": "^9.5"
     }
