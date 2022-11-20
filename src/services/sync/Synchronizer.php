@@ -2,55 +2,136 @@
 
 namespace Supermetrolog\Synchronizer\services\sync;
 
+use LogicException;
+use Supermetrolog\Synchronizer\services\sync\interfaces\AlreadySynchronizedRepositoryInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileRepositoryInterface;
+use Supermetrolog\Synchronizer\services\sync\interfaces\SyncFileReaderInterface;
 
 /**
  * 
- * @property FileInterface[] $changedFiles;
+ * @property FileInterface[] $changingFiles;
+ * @property FileInterface[] $creatingFiles;
+ * @property FileInterface[] $removingFiles;
  */
 class Synchronizer
 {
-    private array $changedFiles;
+    private array $changingFiles;
+    private array $creatingFiles;
+    private array $removingFiles;
+
 
     private FileRepositoryInterface $baseFileRepository;
     private FileRepositoryInterface $targetFileRepository;
-    public function __construct(FileRepositoryInterface $baseFileRepository, FileRepositoryInterface $targetFileRepository)
+    private AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository;
+    public function __construct(FileRepositoryInterface $baseFileRepository, FileRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository)
     {
-        $this->changedFiles = [];
+        $this->changingFiles = [];
+        $this->creatingFiles = [];
+        $this->removingFiles = [];
 
         $this->baseFileRepository = $baseFileRepository;
         $this->targetFileRepository = $targetFileRepository;
+
+        $this->alreadySynchronizedRepository = $alreadySynchronizedRepository;
     }
-    public function loadUpdatedData(): void
+    public function load(): void
+    {
+        if ($this->alreadySynchronizedRepository->isEmpty()) {
+            $this->firstLoadData();
+        } else {
+            $this->loadData();
+        }
+    }
+    private function firstLoadData(): void
     {
         $stream = $this->baseFileRepository->createStream();
         foreach ($stream->readRecursive() as $file) {
             if ($file->isCurrentDirPointer() || $file->isPreventDirPointer()) continue;
-            if ($targetEntry = $this->targetFileRepository->findFile($file)) {
-                if ($targetEntry->getUpdatedTime() > $file->getUpdatedTime()) {
-                    $this->changedFiles[] = $file;
+            $this->creatingFiles[] = $file;
+        }
+    }
+    private function loadData(): void
+    {
+        $stream = $this->baseFileRepository->createStream();
+        foreach ($stream->readRecursive() as $file) {
+            $fileInSyncReader = $this->alreadySynchronizedRepository->findFile($file);
+            if ($fileInSyncReader === null) {
+                $this->creatingFiles[] = $file;
+                continue;
+            }
+            $this->alreadySynchronizedRepository->markFileAsDirty($file);
+
+            if ($file->isDir()) {
+                if ($fileInSyncReader->isDir()) {
+                    continue;
                 }
-            } else {
-                $this->changedFiles[] = $file;
+                $this->removingFiles[] = $file;
+                $this->creatingFiles[] = $file;
+                continue;
+            }
+            // echo "\n";
+            // echo $fileInSyncReader->getContent() . "\n";
+            // echo $fileInSyncReader->getHash() . "\n";
+            // echo $file->getContent() . "\n";
+            // echo $file->getHash() . "\n";
+            if ($file->getHash() !== $fileInSyncReader->getHash()) {
+                $this->changingFiles[] = $file;
+                continue;
             }
         }
+        $this->removingFiles = array_merge($this->removingFiles, $this->alreadySynchronizedRepository->getNotDirtyFiles());
+    }
+
+    /**
+     * @return FileInterface[]
+     */
+    public function getChangingFiles(): array
+    {
+        return $this->changingFiles;
     }
     /**
      * @return FileInterface[]
      */
-    public function getChangedFiles(): array
+    public function getCreatingFiles(): array
     {
-        return $this->changedFiles;
+        return $this->creatingFiles;
     }
-    public function changedFilesExists(): bool
+    /**
+     * @return FileInterface[]
+     */
+    public function getRemovingFiles(): array
     {
-        return count($this->changedFiles) != 0;
+        return $this->removingFiles;
+    }
+    public function affectedFilesExist(): bool
+    {
+        return count($this->changingFiles) != 0 ||
+            count($this->creatingFiles) != 0 ||
+            count($this->removingFiles) != 0;
     }
 
     public function sync()
     {
-        foreach ($this->changedFiles as $file) {
+        $this->removeFiles();
+        $this->createFiles();
+        $this->changeFiles();
+        $this->alreadySynchronizedRepository->updateRepository($this->creatingFiles, $this->changingFiles, $this->removingFiles);
+    }
+    private function changeFiles(): void
+    {
+        foreach ($this->changingFiles as $file) {
+            if ($file->getParent() === null) {
+                $this->updateFileInTargetRepo($file);
+                continue;
+            }
+            $this->createParentDir($file->getParent());
+            $this->updateFileInTargetRepo($file);
+        }
+    }
+    private function createFiles(): void
+    {
+        foreach ($this->creatingFiles as $file) {
             if ($file->getParent() === null) {
                 $this->createFileInTargetRepo($file);
                 continue;
@@ -59,7 +140,14 @@ class Synchronizer
             $this->createFileInTargetRepo($file);
         }
     }
-
+    private function removeFiles(): void
+    {
+        foreach ($this->removingFiles as $file) {
+            if ($this->targetFileRepository->remove($file)) {
+                throw new LogicException("error when removing file");
+            }
+        }
+    }
     private function createParentDir(FileInterface $file)
     {
         if ($file->getParent() === null) {
@@ -70,8 +158,14 @@ class Synchronizer
             $this->createParentDir($file->getParent());
         }
     }
-    private function createFileInTargetRepo(FileInterface $file): bool
+    private function createFileInTargetRepo(FileInterface $file): void
     {
-        return $this->targetFileRepository->create($file, $file->getRelativePath());
+        if (!$this->targetFileRepository->create($file, $file->getRelativePath()))
+            throw new LogicException("error when create file");
+    }
+    private function updateFileInTargetRepo(FileInterface $file): void
+    {
+        if (!$this->targetFileRepository->update($file, $file->getRelativePath()))
+            throw new LogicException("error when update file");
     }
 }

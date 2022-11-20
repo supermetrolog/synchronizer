@@ -38,6 +38,15 @@ class FileSystemTest  extends TestCase
         $this->assertInstanceOf(File::class, $file);
         $this->assertSame(realpath($baseDir = __DIR__ . "/testfolder/" . $fileForFindRelPath), $file->getFullname());
     }
+    public function testFindByRelativeFullname()
+    {
+        $baseDir = __DIR__ . "/testfolder";
+        $fileForFindRelPath = "/children/test3.txt";
+        $fs = new Filesystem($baseDir);
+        $file = $fs->findByRelativeFullname($fileForFindRelPath);
+        $this->assertNotNull($file);
+        $this->assertEquals("test3.txt", $file->getName());
+    }
     public function testFindDir()
     {
         $baseDir = __DIR__ . "/testfolder";
@@ -67,5 +76,24 @@ class FileSystemTest  extends TestCase
         $fileForCreate = new File("children", $baseDir, "", null);
         $fs->create($fileForCreate, $fileForCreate->getRelativePath());
         $this->assertTrue(file_exists("$baseDir/children"));
+    }
+
+    public function testCreateFileWithContent()
+    {
+        $baseDir = __DIR__ . "/testfolder";
+        $fs = new Filesystem($baseDir);
+        $fs->createFileWithContent("fuck the police", "suka.txt");
+        $this->assertTrue(file_exists("$baseDir/suka.txt"));
+        $this->assertEquals("fuck the police", file_get_contents("$baseDir/suka.txt"));
+        unlink("$baseDir/suka.txt");
+    }
+    public function testCreateFileWithContentInChildrenDirectory()
+    {
+        $baseDir = __DIR__ . "/testfolder";
+        $fs = new Filesystem($baseDir);
+        $fs->createFileWithContent("fuck the police", "suka.txt", "/children");
+        $this->assertTrue(file_exists("$baseDir/children/suka.txt"));
+        $this->assertEquals("fuck the police", file_get_contents("$baseDir/children/suka.txt"));
+        unlink("$baseDir/children/suka.txt");
     }
 }

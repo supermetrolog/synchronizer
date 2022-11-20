@@ -53,4 +53,13 @@ class FileTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         new File($name, $path, "", $file);
     }
+
+    public function testGetHash()
+    {
+        $name = "test1.txt";
+        $path = __DIR__ . "/testfolder";
+        file_put_contents("$path/$name", "Наглый коричневый лисёнок прыгает вокруг ленивой собаки.");
+        $file = new File($name, $path, "", null);
+        $this->assertEquals("bff8b4bc8b5c1c1d5b3211dfb21d1e76", $file->getHash());
+    }
 }

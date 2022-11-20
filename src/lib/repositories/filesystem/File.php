@@ -3,6 +3,7 @@
 namespace Supermetrolog\Synchronizer\lib\repositories\filesystem;
 
 use InvalidArgumentException;
+use LogicException;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 
 class File implements FileInterface
@@ -19,6 +20,9 @@ class File implements FileInterface
         $this->name = $name;
         $this->path = $path;
         $this->relativePath = $relativePath;
+        $this->name = str_replace("\\", "/", $this->name);
+        $this->relativePath = str_replace("\\", "/", $this->relativePath);
+        $this->path = str_replace("\\", "/", $this->path);
         if ($parent && !$parent->isDir()) {
             throw new InvalidArgumentException("parent cannot be file");
         }
@@ -32,7 +36,10 @@ class File implements FileInterface
     {
         return $this->path . "/" . $this->name;
     }
-
+    public function getPath(): string
+    {
+        return $this->path;
+    }
     public function getName(): string
     {
         return $this->name;
@@ -44,6 +51,10 @@ class File implements FileInterface
     public function getFullname(): string
     {
         return realpath($this->path . "/" . $this->name);
+    }
+    public function getRelativeFullname(): string
+    {
+        return $this->relativePath . "/" . $this->name;
     }
     public function getRelativePath(): string
     {
@@ -75,5 +86,11 @@ class File implements FileInterface
     {
         if ($this->content !== null) return $this->content;
         return file_get_contents($this->getFullname());
+    }
+
+    public function getHash(): string
+    {
+        if ($this->isDir()) throw new LogicException("directory have not hash");
+        return hash_file('md5', $this->getFullname());
     }
 }
