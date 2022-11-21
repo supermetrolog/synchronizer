@@ -90,6 +90,7 @@ class Filesystem implements FileRepositoryInterface, RepositoryInterface
         if ($file->isDir()) {
             return $this->removeDirRecursive($filename);
         }
+
         return unlink($filename);
     }
 

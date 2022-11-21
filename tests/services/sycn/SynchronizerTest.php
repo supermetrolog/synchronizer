@@ -108,8 +108,21 @@ class SynchronizerTest  extends TestCase
         $this->assertEquals("test.txt", $this->sync->getChangingFiles()[0]->getName());
         $this->assertEquals("update", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
     }
-    // public function testRemovingFiles()
-    // {
-    //     # code...
-    // }
+    public function testRemovingFiles()
+    {
+        $this->sync->load();
+        $this->sync->sync();
+
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/test.txt"));
+        $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
+        $this->assertEquals("dermo", file_get_contents(self::targetDirNameForSynchronize . "/children/test1.txt"));
+        Directory::rmdir(self::baseDirNameForSynchronize . "/children");
+        $this->createData();
+        $this->sync->load();
+        $this->sync->sync();
+        $this->assertFalse(file_exists(self::targetDirNameForSynchronize . "/children"));
+        $this->assertFalse(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
+    }
 }

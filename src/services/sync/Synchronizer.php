@@ -70,11 +70,6 @@ class Synchronizer
                 $this->creatingFiles[] = $file;
                 continue;
             }
-            // echo "\n";
-            // echo $fileInSyncReader->getContent() . "\n";
-            // echo $fileInSyncReader->getHash() . "\n";
-            // echo $file->getContent() . "\n";
-            // echo $file->getHash() . "\n";
             if ($file->getHash() !== $fileInSyncReader->getHash()) {
                 $this->changingFiles[] = $file;
                 continue;
@@ -143,7 +138,7 @@ class Synchronizer
     private function removeFiles(): void
     {
         foreach ($this->removingFiles as $file) {
-            if ($this->targetFileRepository->remove($file)) {
+            if (!$this->targetFileRepository->remove($file)) {
                 throw new LogicException("error when removing file");
             }
         }

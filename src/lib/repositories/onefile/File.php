@@ -9,9 +9,11 @@ use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 class File extends FilesystemFile
 {
     public string $hash;
+    public bool $isDir;
     public function __construct(FileInterface $file)
     {
         $this->hash = "";
+        $this->isDir = $file->isDir();
         if (!$file->isDir()) {
             $this->hash = $file->getHash();
         }
@@ -22,5 +24,9 @@ class File extends FilesystemFile
     public function getHash(): string
     {
         return $this->hash;
+    }
+    public function isDir(): bool
+    {
+        return $this->isDir;
     }
 }
