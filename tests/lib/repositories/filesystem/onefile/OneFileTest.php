@@ -54,6 +54,7 @@ class OneFileTest  extends TestCase
 
         $filesystemRepo = new Filesystem(self::TEST_FOLDER);
         $newOneFileRepo = new OneFile($filesystemRepo, self::FILE_NAME);
+
         $findedFile1 = $newOneFileRepo->findFile($file1);
         $findedFile2 = $newOneFileRepo->findFile($file2);
         $this->assertNotNull($findedFile1);
