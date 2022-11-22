@@ -1,6 +1,6 @@
 <?php
 
-namespace Supermetrolog\Synchronizer\lib\repositories\filesystem;
+namespace Supermetrolog\Synchronizer\lib\repositories\filesystem\file;
 
 use InvalidArgumentException;
 use LogicException;
@@ -11,54 +11,44 @@ class File implements FileInterface
     public const CURRENT_DIRECTORY_FILENAME = ".";
     public const PREVENT_DIRECTORY_FILENAME = "..";
     private string $name;
-    private string $path;
-    private string $relativePath;
+    private AbsPath $path;
+    private RelPath $relativePath;
     private ?self $parent;
     private $content = null;
-    public function __construct(string $name, string $path, string $relativePath, ?self $parent)
+    public function __construct(string $name, AbsPath $path, RelPath $relativePath, ?self $parent)
     {
         $this->name = $name;
         $this->path = $path;
         $this->relativePath = $relativePath;
-        $this->name = str_replace("\\", "/", $this->name);
-        $this->relativePath = str_replace("\\", "/", $this->relativePath);
-        $this->path = str_replace("\\", "/", $this->path);
         if ($parent && !$parent->isDir()) {
             throw new InvalidArgumentException("parent cannot be file");
         }
 
-        if ($parent && $parent->getNotPrecessedFullname() == $this->getNotPrecessedFullname()) {
+        if ($parent && $parent->getFullname() == $this->getFullname()) {
             throw new InvalidArgumentException("parent directory cannot indicate in equals filepath");
         }
         $this->parent = $parent;
-    }
-    private function getNotPrecessedFullname(): string
-    {
-        return $this->path . "/" . $this->name;
-    }
-    public function getPath(): string
-    {
-        return $this->path;
     }
     public function getName(): string
     {
         return $this->name;
     }
-    public function getUpdatedTime(): int
+
+    private function getFullname(): string
     {
-        return filemtime($this->getFullname());
+        return $this->path . $this->relativePath . $this->name;
     }
-    public function getFullname(): string
+    public function getRelFullname(): string
     {
-        return realpath($this->path . "/" . $this->name);
+        return $this->relativePath . $this->name;
     }
-    public function getRelativeFullname(): string
-    {
-        return $this->relativePath . "/" . $this->name;
-    }
-    public function getRelativePath(): string
+    public function getRelPath(): string
     {
         return $this->relativePath;
+    }
+    public function getAbsPath(): string
+    {
+        return $this->path;
     }
     public function isDir(): bool
     {

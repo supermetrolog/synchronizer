@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\AbsPath;
 use Supermetrolog\Synchronizer\lib\repositories\filesystem\Filesystem;
 use Supermetrolog\Synchronizer\lib\repositories\onefile\OneFile;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
@@ -31,8 +32,8 @@ class SynchronizerTest  extends TestCase
     }
     private function createData(): void
     {
-        $this->baseRepo = new Filesystem(self::baseDirNameForSynchronize);
-        $this->targetRepo = new Filesystem(self::targetDirNameForSynchronize);
+        $this->baseRepo = new Filesystem(new AbsPath(self::baseDirNameForSynchronize));
+        $this->targetRepo = new Filesystem(new AbsPath(self::targetDirNameForSynchronize));
         $this->oneFileRepo = new OneFile($this->targetRepo, "sync-file.txt");
         $this->sync = new Synchronizer($this->baseRepo, $this->targetRepo, $this->oneFileRepo);
     }

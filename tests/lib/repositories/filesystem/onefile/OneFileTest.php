@@ -1,15 +1,18 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Supermetrolog\Synchronizer\lib\repositories\filesystem\File;
+use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\AbsPath;
+use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\File;
+use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\RelPath;
 use Supermetrolog\Synchronizer\lib\repositories\filesystem\Filesystem;
 use Supermetrolog\Synchronizer\lib\repositories\onefile\OneFile;
 use tests\testhelpers\Directory;
 
 class OneFileTest  extends TestCase
 {
-    private const FILE_NAME = "sync-file.txt";
+    private const FILE_NAME = "sync-file.cache";
     private const TEST_FOLDER = __DIR__ . "/testfolder";
+    private AbsPath $testFolderPath;
     private OneFile $oneFileRepo;
     public function setUp(): void
     {
@@ -22,7 +25,8 @@ class OneFileTest  extends TestCase
     }
     public function createData()
     {
-        $filesystemRepo = new Filesystem(self::TEST_FOLDER);
+        $this->testFolderPath = new AbsPath(self::TEST_FOLDER);
+        $filesystemRepo = new Filesystem(new AbsPath(self::TEST_FOLDER));
         $this->oneFileRepo = new OneFile($filesystemRepo, self::FILE_NAME);
     }
     public function createFilesForTestWithExistFile(): void
@@ -36,8 +40,8 @@ class OneFileTest  extends TestCase
     public function testUpdateRepository()
     {
         $this->assertTrue($this->oneFileRepo->isEmpty());
-        $file1 = new File("test1.txt", self::TEST_FOLDER, "", null);
-        $file2 = new File("test2.txt", self::TEST_FOLDER, "", null);
+        $file1 = new File("test1.txt", $this->testFolderPath, new RelPath(""), null);
+        $file2 = new File("test2.txt", $this->testFolderPath, new RelPath(""), null);
         $creatingFiles = [
             $file1,
             $file2,
@@ -52,7 +56,7 @@ class OneFileTest  extends TestCase
         $this->assertEquals($file1->getHash(), $findedFile1->getHash());
         $this->assertEquals($file2->getHash(), $findedFile2->getHash());
 
-        $filesystemRepo = new Filesystem(self::TEST_FOLDER);
+        $filesystemRepo = new Filesystem($this->testFolderPath);
         $newOneFileRepo = new OneFile($filesystemRepo, self::FILE_NAME);
 
         $findedFile1 = $newOneFileRepo->findFile($file1);
@@ -65,8 +69,8 @@ class OneFileTest  extends TestCase
 
     public function testMarkFileAsDirty()
     {
-        $file1 = new File("test1.txt", self::TEST_FOLDER, "", null);
-        $file2 = new File("test2.txt", self::TEST_FOLDER, "", null);
+        $file1 = new File("test1.txt", $this->testFolderPath, new RelPath(""), null);
+        $file2 = new File("test2.txt", $this->testFolderPath, new RelPath(""), null);
         $creatingFiles = [
             $file1,
             $file2,

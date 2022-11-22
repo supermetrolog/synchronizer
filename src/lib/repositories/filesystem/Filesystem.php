@@ -3,17 +3,18 @@
 namespace Supermetrolog\Synchronizer\lib\repositories\filesystem;
 
 use InvalidArgumentException;
+use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\AbsPath;
 use Supermetrolog\Synchronizer\lib\repositories\onefile\interfaces\RepositoryInterface;
+use Supermetrolog\Synchronizer\services\sync\interfaces\BaseRepositoryInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\FileRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\FileStreamInterface;
+use Supermetrolog\Synchronizer\services\sync\interfaces\StreamInterface;
+use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
 
-class Filesystem implements FileRepositoryInterface, RepositoryInterface
+class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, RepositoryInterface
 {
-    private string $dirpath;
-    public function __construct(string $dirpath)
+    private AbsPath $dirpath;
+    public function __construct(AbsPath $dirpath)
     {
-        $dirpath = realpath($dirpath);
         if (!$dirpath)
             throw new InvalidArgumentException("invalid base directory path");
         if (!file_exists($dirpath))
@@ -22,18 +23,15 @@ class Filesystem implements FileRepositoryInterface, RepositoryInterface
             throw new InvalidArgumentException("base dir path is not directory");
         $this->dirpath = $dirpath;
     }
-    public function createStream(): FileStreamInterface
+    public function getStream(): StreamInterface
     {
         return new Stream($this->dirpath);
     }
     public function findFile(FileInterface $findedFile): ?FileInterface
     {
-        $fullname = realpath($this->dirpath . $findedFile->getRelativePath());
-        if (!$fullname) return null;
-        $stream = $this->createStream();
-
-        foreach ($stream->readRecursive() as $file) {
-            if ($file->getFullname() == $fullname && $file->getName() == $findedFile->getName()) {
+        $stream = $this->getStream();
+        foreach ($stream->read() as $file) {
+            if ($file->getRelFullname() === $findedFile->getRelFullname()) {
                 return $file;
             }
         }
@@ -43,10 +41,10 @@ class Filesystem implements FileRepositoryInterface, RepositoryInterface
     {
         $relativeName = "/$relativeName";
         $relativeName = str_replace("//", '/', $relativeName);
-        $stream = $this->createStream();
+        $stream = $this->getStream();
 
-        foreach ($stream->readRecursive() as $file) {
-            if ($file->getRelativeFullname() == $relativeName) return $file;
+        foreach ($stream->read() as $file) {
+            if ($file->getRelFullname() == $relativeName) return $file;
         }
         return null;
     }
@@ -59,9 +57,9 @@ class Filesystem implements FileRepositoryInterface, RepositoryInterface
         return $this->createFileWithContent($content, $filename, $relativePath);
     }
 
-    public function create(FileInterface $file, string $relativePath): bool
+    public function create(FileInterface $file): bool
     {
-        $fullname = $this->dirpath . $relativePath . "/" . $file->getName();
+        $fullname = $this->dirpath . $file->getRelFullname();
         if ($file->isDir()) {
             if (file_exists($fullname)) return true;
             return mkdir($fullname, 0777);
@@ -72,12 +70,12 @@ class Filesystem implements FileRepositoryInterface, RepositoryInterface
         }
         return true;
     }
-    public function update(FileInterface $file, string $relativePath): bool
+    public function update(FileInterface $file): bool
     {
         if ($file->isDir()) {
             return false;
         }
-        $filename = $this->dirpath . $relativePath . "/" . $file->getName();
+        $filename = $this->dirpath . $file->getRelFullname();
         $result = file_put_contents($filename, $file->getContent());
         if ($result === false) {
             return false;
@@ -86,7 +84,7 @@ class Filesystem implements FileRepositoryInterface, RepositoryInterface
     }
     public function remove(FileInterface $file): bool
     {
-        $filename = $this->dirpath . $file->getRelativeFullname();
+        $filename = $this->dirpath . $file->getRelFullname();
         if ($file->isDir()) {
             return $this->removeDirRecursive($filename);
         }

@@ -3,54 +3,54 @@
 namespace Supermetrolog\Synchronizer\lib\repositories\filesystem;
 
 use Generator;
-use Supermetrolog\Synchronizer\services\sync\interfaces\FileStreamInterface;
+use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\AbsPath;
+use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\File;
+use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\RelPath;
+use Supermetrolog\Synchronizer\services\sync\interfaces\StreamInterface;
 
-class Stream implements FileStreamInterface
+class Stream implements StreamInterface
 {
-    private string $dirpath;
-    private $handlerBuffer;
-    public function __construct(string $dirpath)
+    private AbsPath $dirpath;
+    private $lastHandle;
+    public function __construct(AbsPath $dirpath)
     {
         $this->dirpath = $dirpath;
-    }
-
-    public function read(): Generator
-    {
-        $handle = opendir($this->dirpath);
-        while ($filename = readdir($handle)) {
-            yield new File($filename, $this->dirpath, "", null);
-        }
-        closedir($handle);
     }
     /**
      * @return File[]
      */
-    public function readRecursive(): Generator
+    public function read(): Generator
     {
-        yield from $this->_readRecursive($this->dirpath);
+        yield from $this->readRecursive($this->dirpath);
     }
-    private function _readRecursive(string $dirpath, ?File $parent = null): Generator
+    private function readRecursive(AbsPath $dirpath, ?File $parent = null): Generator
     {
         $handle = opendir($dirpath);
-        $this->handlerBuffer = &$handle;
+        $this->lastHandle = &$handle;
         while ($filename = readdir($handle)) {
             $relativePath = str_replace($this->dirpath, "", $dirpath);
-            $file = new File($filename, $dirpath, $relativePath, $parent);
+            $file = new File($filename, $this->dirpath, new RelPath($relativePath), $parent);
             if (
                 $file->isDir() &&
                 !$file->isCurrentDirPointer() &&
                 !$file->isPreventDirPointer()
             ) {
-                yield from $this->_readRecursive($file->getFullname(), $file);
+                yield from $this->readRecursive($this->getNextPath($file), $file);
+            }
+            if ($file->isCurrentDirPointer() || $file->isPreventDirPointer()) {
+                continue;
             }
             yield $file;
         }
         closedir($handle);
     }
-
+    private function getNextPath(File $file): AbsPath
+    {
+        return $this->dirpath->addRelativePath($file->getRelFullname());
+    }
     public function __destruct()
     {
-        if (is_resource($this->handlerBuffer))
-            closedir($this->handlerBuffer);
+        if (is_resource($this->lastHandle))
+            closedir($this->lastHandle);
     }
 }

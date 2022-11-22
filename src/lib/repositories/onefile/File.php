@@ -3,13 +3,13 @@
 
 namespace Supermetrolog\Synchronizer\lib\repositories\onefile;
 
-use Supermetrolog\Synchronizer\lib\repositories\filesystem\File as FilesystemFile;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 
-class File extends FilesystemFile
+class File implements FileInterface
 {
     public string $hash;
     public bool $isDir;
+    private FileInterface $file;
     public function __construct(FileInterface $file)
     {
         $this->hash = "";
@@ -17,8 +17,7 @@ class File extends FilesystemFile
         if (!$file->isDir()) {
             $this->hash = $file->getHash();
         }
-
-        parent::__construct($file->getName(), $file->getPath(), $file->getRelativePath(), $file->getParent());
+        $this->file = $file;
     }
 
     public function getHash(): string
@@ -28,5 +27,35 @@ class File extends FilesystemFile
     public function isDir(): bool
     {
         return $this->isDir;
+    }
+    public function getName(): string
+    {
+        return $this->file->getName();
+    }
+    public function getRelFullname(): string
+    {
+        return $this->file->getRelFullname();
+    }
+    public function getRelPath(): string
+    {
+        return $this->file->getRelPath();
+    }
+    public function getAbsPath(): string
+    {
+        return $this->file->getAbsPath();
+    }
+    public function getParent(): ?self
+    {
+        return $this->file->getParent();
+    }
+
+    public function loadContent(string $content): void
+    {
+        $this->content = $content;
+    }
+
+    public function getContent(): ?string
+    {
+        return $this->file->getContent();
     }
 }

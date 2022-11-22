@@ -4,9 +4,9 @@ namespace Supermetrolog\Synchronizer\services\sync;
 
 use LogicException;
 use Supermetrolog\Synchronizer\services\sync\interfaces\AlreadySynchronizedRepositoryInterface;
+use Supermetrolog\Synchronizer\services\sync\interfaces\BaseRepositoryInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\FileRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\SyncFileReaderInterface;
+use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
 
 /**
  * 
@@ -21,10 +21,10 @@ class Synchronizer
     private array $removingFiles;
 
 
-    private FileRepositoryInterface $baseFileRepository;
-    private FileRepositoryInterface $targetFileRepository;
+    private BaseRepositoryInterface $baseFileRepository;
+    private TargetRepositoryInterface $targetFileRepository;
     private AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository;
-    public function __construct(FileRepositoryInterface $baseFileRepository, FileRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository)
+    public function __construct(BaseRepositoryInterface $baseFileRepository, TargetRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository)
     {
         $this->changingFiles = [];
         $this->creatingFiles = [];
@@ -45,16 +45,15 @@ class Synchronizer
     }
     private function firstLoadData(): void
     {
-        $stream = $this->baseFileRepository->createStream();
-        foreach ($stream->readRecursive() as $file) {
-            if ($file->isCurrentDirPointer() || $file->isPreventDirPointer()) continue;
+        $stream = $this->baseFileRepository->getStream();
+        foreach ($stream->read() as $file) {
             $this->creatingFiles[] = $file;
         }
     }
     private function loadData(): void
     {
-        $stream = $this->baseFileRepository->createStream();
-        foreach ($stream->readRecursive() as $file) {
+        $stream = $this->baseFileRepository->getStream();
+        foreach ($stream->read() as $file) {
             $fileInSyncReader = $this->alreadySynchronizedRepository->findFile($file);
             if ($fileInSyncReader === null) {
                 $this->creatingFiles[] = $file;
@@ -155,12 +154,12 @@ class Synchronizer
     }
     private function createFileInTargetRepo(FileInterface $file): void
     {
-        if (!$this->targetFileRepository->create($file, $file->getRelativePath()))
+        if (!$this->targetFileRepository->create($file, $file->getRelPath()))
             throw new LogicException("error when create file");
     }
     private function updateFileInTargetRepo(FileInterface $file): void
     {
-        if (!$this->targetFileRepository->update($file, $file->getRelativePath()))
+        if (!$this->targetFileRepository->update($file, $file->getRelPath()))
             throw new LogicException("error when update file");
     }
 }

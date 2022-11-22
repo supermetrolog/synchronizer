@@ -5,14 +5,10 @@ namespace Supermetrolog\Synchronizer\services\sync\interfaces;
 
 use Generator;
 
-interface FileStreamInterface
+interface StreamInterface
 {
     /**
      * @return FileInterface[]
      */
     public function read(): Generator;
-    /**
-     * @return FileInterface[]
-     */
-    public function readRecursive(): Generator;
 }
