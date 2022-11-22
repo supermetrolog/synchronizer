@@ -26,7 +26,8 @@ class File implements FileInterface
     }
     public function isDir(): bool
     {
-        return $this->isDir;
+        // return $this->isDir;
+        return $this->file->isDir();
     }
     public function getName(): string
     {

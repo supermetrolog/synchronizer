@@ -85,6 +85,9 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
     public function remove(FileInterface $file): bool
     {
         $filename = $this->dirpath . $file->getRelFullname();
+        if ($filename == "C:/OpenServer/domains/synchronizer/tests/services/sycn/testfolderwithexistchanges/testtargetfolder/children") {
+            var_dump($file);
+        }
         if ($file->isDir()) {
             return $this->removeDirRecursive($filename);
         }

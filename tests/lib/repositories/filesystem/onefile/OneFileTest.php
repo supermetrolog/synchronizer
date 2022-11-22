@@ -33,6 +33,7 @@ class OneFileTest  extends TestCase
     {
         $testFolder = self::TEST_FOLDER;
         mkdir($testFolder, 0777);
+        mkdir($testFolder . "/fuck", 0777);
 
         file_put_contents(self::TEST_FOLDER . "/test1.txt", "fuck");
         file_put_contents(self::TEST_FOLDER . "/test2.txt", "suck");
@@ -80,5 +81,25 @@ class OneFileTest  extends TestCase
         $this->assertNotEmpty($this->oneFileRepo->getNotDirtyFiles());
         $this->assertCount(1, $this->oneFileRepo->getNotDirtyFiles());
         $this->assertEquals($file2->getHash(), $this->oneFileRepo->getNotDirtyFiles()[0]->getHash());
+    }
+
+    public function testFileMethodsAfterUnserialize()
+    {
+        $this->assertTrue($this->oneFileRepo->isEmpty());
+        $file1 = new File("test1.txt", $this->testFolderPath, new RelPath(""), null);
+        $file2 = new File("fuck", $this->testFolderPath, new RelPath(""), null);
+        $creatingFiles = [
+            $file1,
+            $file2,
+        ];
+        $this->oneFileRepo->updateRepository($creatingFiles, [], []);
+
+        $filesystemRepo = new Filesystem($this->testFolderPath);
+        $newOneFileRepo = new OneFile($filesystemRepo, self::FILE_NAME);
+
+        $findedFile1 = $newOneFileRepo->findFile($file1);
+        $findedFile2 = $newOneFileRepo->findFile($file2);
+        $this->assertFalse($findedFile1->isDir());
+        $this->assertTrue($findedFile2->isDir());
     }
 }
