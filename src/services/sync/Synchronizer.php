@@ -9,11 +9,11 @@ use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
 
 /**
- * 
- * @property FileInterface[] $changingFiles;
- * @property FileInterface[] $creatingFiles;
- * @property FileInterface[] $removingFiles;
+ * @property FileInterface[] $changingFiles
+ * @property FileInterface[] $creatingFiles
+ * @property FileInterface[] $removingFiles
  */
+
 class Synchronizer
 {
     private array $changingFiles;
