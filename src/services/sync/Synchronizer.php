@@ -119,18 +119,19 @@ class Synchronizer
                 $this->updateFileInTargetRepo($file);
                 continue;
             }
-            $this->createParentDir($file->getParent());
+            $this->createParent($file->getParent());
             $this->updateFileInTargetRepo($file);
         }
     }
     private function createFiles(): void
     {
         foreach ($this->creatingFiles as $file) {
+            echo "\n" . $file->getUniqueName() . "\n";
             if ($file->getParent() === null) {
                 $this->createFileInTargetRepo($file);
                 continue;
             }
-            $this->createParentDir($file->getParent());
+            $this->createParent($file->getParent());
             $this->createFileInTargetRepo($file);
         }
     }
@@ -142,16 +143,26 @@ class Synchronizer
             }
         }
     }
-    private function createParentDir(FileInterface $file)
+    private function createParent(FileInterface $file, FileInterface $parent)
     {
         if ($file->getParent() === null) {
             $this->createFileInTargetRepo($file);
             return;
         }
         if (!$this->targetFileRepository->findFile($file->getParent())) {
-            $this->createParentDir($file->getParent());
+            $this->createParent($file->getParent());
         }
     }
+    // private function createParent(FileInterface $file)
+    // {
+    //     if ($file->getParent() === null) {
+    //         $this->createFileInTargetRepo($file);
+    //         return;
+    //     }
+    //     if (!$this->targetFileRepository->findFile($file->getParent())) {
+    //         $this->createParent($file->getParent());
+    //     }
+    // }
     private function createFileInTargetRepo(FileInterface $file): void
     {
         if (!$this->targetFileRepository->create($file, $this->baseFileRepository->getContent($file)))
