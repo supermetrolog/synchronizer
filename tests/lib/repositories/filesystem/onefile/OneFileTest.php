@@ -41,8 +41,10 @@ class OneFileTest  extends TestCase
     public function testUpdateRepository()
     {
         $this->assertTrue($this->oneFileRepo->isEmpty());
-        $file1 = new File("test1.txt", $this->testFolderPath, new RelPath(""), null);
-        $file2 = new File("test2.txt", $this->testFolderPath, new RelPath(""), null);
+        $hash1 = hash_file("md5", $this->testFolderPath . "/test1.txt");
+        $hash2 = hash_file("md5", $this->testFolderPath . "/test2.txt");
+        $file1 = new File("test1.txt", $hash1, new RelPath(), false, null);
+        $file2 = new File("test2.txt", $hash2, new RelPath(), false, null);
         $creatingFiles = [
             $file1,
             $file2,
@@ -70,8 +72,10 @@ class OneFileTest  extends TestCase
 
     public function testMarkFileAsDirty()
     {
-        $file1 = new File("test1.txt", $this->testFolderPath, new RelPath(""), null);
-        $file2 = new File("test2.txt", $this->testFolderPath, new RelPath(""), null);
+        $hash1 = hash_file("md5", $this->testFolderPath . "/test1.txt");
+        $hash2 = hash_file("md5", $this->testFolderPath . "/test2.txt");
+        $file1 = new File("test1.txt", $hash1, new RelPath(), false, null);
+        $file2 = new File("test2.txt", $hash2, new RelPath(), false, null);
         $creatingFiles = [
             $file1,
             $file2,
@@ -86,8 +90,9 @@ class OneFileTest  extends TestCase
     public function testFileMethodsAfterUnserialize()
     {
         $this->assertTrue($this->oneFileRepo->isEmpty());
-        $file1 = new File("test1.txt", $this->testFolderPath, new RelPath(""), null);
-        $file2 = new File("fuck", $this->testFolderPath, new RelPath(""), null);
+        $hash1 = hash_file("md5", $this->testFolderPath . "/test1.txt");
+        $file1 = new File("test1.txt", $hash1, new RelPath(), false, null);
+        $file2 = new File("fuck", "", new RelPath(), true, null);
         $creatingFiles = [
             $file1,
             $file2,

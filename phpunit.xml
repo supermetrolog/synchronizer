@@ -3,5 +3,6 @@
 <phpunit bootstrap="vendor/autoload.php">
     <testsuite name="Main">
         <directory suffix="Test.php">./tests</directory>
+        <!-- <directory suffix="StreamTest.php">./tests/lib/repositories/filesystem</directory> -->
     </testsuite>
 </phpunit>

@@ -68,10 +68,10 @@ class SynchronizerTest  extends TestCase
         foreach ($creatingFiles as $file) {
             $this->assertInstanceOf(FileInterface::class, $file);
         }
-        $this->assertSame("test1.txt", $creatingFiles[0]->getName());
-        $this->assertSame("children", $creatingFiles[1]->getName());
-        $this->assertSame("test.txt", $creatingFiles[2]->getName());
-        $this->assertSame("test2.txt", $creatingFiles[3]->getName());
+        $this->assertSame("/children/test1.txt", $creatingFiles[0]->getUniqueName());
+        $this->assertSame("/children", $creatingFiles[1]->getUniqueName());
+        $this->assertSame("/test.txt", $creatingFiles[2]->getUniqueName());
+        $this->assertSame("/test2.txt", $creatingFiles[3]->getUniqueName());
     }
 
     public function testSync()
@@ -106,7 +106,7 @@ class SynchronizerTest  extends TestCase
         $this->assertTrue($this->sync->affectedFilesExist());
         $this->assertNotNull($this->sync->getChangingFiles());
         $this->assertCount(1, $this->sync->getChangingFiles());
-        $this->assertEquals("test.txt", $this->sync->getChangingFiles()[0]->getName());
+        $this->assertEquals("/test.txt", $this->sync->getChangingFiles()[0]->getUniqueName());
         $this->assertEquals("update", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
     }
     public function testRemovingFiles()

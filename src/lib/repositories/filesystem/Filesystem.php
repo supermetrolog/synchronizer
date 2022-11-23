@@ -31,7 +31,7 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
     {
         $stream = $this->getStream();
         foreach ($stream->read() as $file) {
-            if ($file->getRelFullname() === $findedFile->getRelFullname()) {
+            if ($file->getUniqueName() === $findedFile->getUniqueName()) {
                 return $file;
             }
         }
@@ -44,7 +44,7 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
         $stream = $this->getStream();
 
         foreach ($stream->read() as $file) {
-            if ($file->getRelFullname() == $relativeName) return $file;
+            if ($file->getUniqueName() == $relativeName) return $file;
         }
         return null;
     }
@@ -56,27 +56,37 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
     {
         return $this->createFileWithContent($content, $filename, $relativePath);
     }
-
-    public function create(FileInterface $file): bool
+    public function getContent(FileInterface $file): ?string
     {
-        $fullname = $this->dirpath . $file->getRelFullname();
-        if ($file->isDir()) {
-            if (file_exists($fullname)) return true;
-            return mkdir($fullname, 0777);
+        $filename = $this->dirpath . $file->getUniqueName();
+        if (!file_exists($filename)) {
+            return null;
         }
-        $result = file_put_contents($fullname, $file->getContent());
+        if (is_dir($filename)) {
+            return null;
+        }
+        return file_get_contents($this->dirpath . $file->getUniqueName());
+    }
+    public function create(FileInterface $file, ?string $content = null): bool
+    {
+        $filename = $this->dirpath . $file->getUniqueName();
+        if ($file->isDir()) {
+            if (file_exists($filename)) return true;
+            return mkdir($filename, 0777);
+        }
+        $result = file_put_contents($filename, $content);
         if ($result === false) {
             return false;
         }
         return true;
     }
-    public function update(FileInterface $file): bool
+    public function update(FileInterface $file, ?string $content = null): bool
     {
         if ($file->isDir()) {
             return false;
         }
-        $filename = $this->dirpath . $file->getRelFullname();
-        $result = file_put_contents($filename, $file->getContent());
+        $filename = $this->dirpath . $file->getUniqueName();
+        $result = file_put_contents($filename, $content);
         if ($result === false) {
             return false;
         }
@@ -84,10 +94,7 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
     }
     public function remove(FileInterface $file): bool
     {
-        $filename = $this->dirpath . $file->getRelFullname();
-        if ($filename == "C:/OpenServer/domains/synchronizer/tests/services/sycn/testfolderwithexistchanges/testtargetfolder/children") {
-            var_dump($file);
-        }
+        $filename = $this->dirpath . $file->getUniqueName();
         if ($file->isDir()) {
             return $this->removeDirRecursive($filename);
         }

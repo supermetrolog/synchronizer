@@ -154,12 +154,12 @@ class Synchronizer
     }
     private function createFileInTargetRepo(FileInterface $file): void
     {
-        if (!$this->targetFileRepository->create($file, $file->getRelPath()))
+        if (!$this->targetFileRepository->create($file, $this->baseFileRepository->getContent($file)))
             throw new LogicException("error when create file");
     }
     private function updateFileInTargetRepo(FileInterface $file): void
     {
-        if (!$this->targetFileRepository->update($file, $file->getRelPath()))
+        if (!$this->targetFileRepository->update($file, $this->baseFileRepository->getContent($file)))
             throw new LogicException("error when update file");
     }
 }

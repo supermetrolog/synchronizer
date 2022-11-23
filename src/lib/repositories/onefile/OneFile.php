@@ -29,16 +29,17 @@ class OneFile implements AlreadySynchronizedRepositoryInterface
     {
         $file = $this->repo->findByRelativeFullname($this->filename);
         if ($file !== null) {
-            $this->files = unserialize($file->getContent());
+            $this->files = unserialize($this->repo->getContent($file));
         }
     }
     public function findFile(FileInterface $findedFile): ?FileInterface
     {
-        if (key_exists($findedFile->getRelFullname(), $this->files)) {
-            return $this->files[$findedFile->getRelFullname()];
+        if (key_exists($findedFile->getUniqueName(), $this->files)) {
+            return $this->files[$findedFile->getUniqueName()];
         }
         return null;
     }
+
     /**
      * @param FileInterface[] $createdFiles
      * @param FileInterface[] $updatedFiles
@@ -57,7 +58,7 @@ class OneFile implements AlreadySynchronizedRepositoryInterface
     private function removeFiles(array $files): void
     {
         foreach ($files as $file) {
-            unset($this->files[$file->getRelFullname()]);
+            unset($this->files[$file->getUniqueName()]);
         }
     }
     /**
@@ -66,7 +67,7 @@ class OneFile implements AlreadySynchronizedRepositoryInterface
     private function createFiles(array $files): void
     {
         foreach ($files as $file) {
-            $this->files[$file->getRelFullname()] = new File($file);
+            $this->files[$file->getUniqueName()] = $file;
         }
     }
     /**
@@ -83,7 +84,7 @@ class OneFile implements AlreadySynchronizedRepositoryInterface
     }
     public function markFileAsDirty(FileInterface $file): void
     {
-        $this->dirtyFileKeys[$file->getRelFullname()] = $file;
+        $this->dirtyFileKeys[$file->getUniqueName()] = $file;
     }
     /**
      * @return FileInterface[]

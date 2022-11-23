@@ -5,7 +5,7 @@ namespace Supermetrolog\Synchronizer\lib\repositories\filesystem\file;
 
 class RelPath extends Path
 {
-    public function __construct(string $path)
+    public function __construct(string $path = "")
     {
         $path = preg_replace('!\\\+!', "/", $path);
         $path = preg_replace('!/+!', "/", $path);

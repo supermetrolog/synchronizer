@@ -33,12 +33,12 @@ class FileSystemTest  extends TestCase
         $baseDir = new AbsPath(__DIR__ . "/testfolder");
         $fileForFindRelPath = new RelPath("/children//");
         $fs = new Filesystem($baseDir);
-        $fileForFind = new File("test3.txt", $baseDir->addRelativePath($fileForFindRelPath), $fileForFindRelPath, null);
+        $fileForFind = new File("test3.txt", "", $fileForFindRelPath, false, null);
         $file = $fs->findFile($fileForFind);
-        $this->assertEquals("test3.txt", $file->getName());
+        $this->assertEquals("/children/test3.txt", $file->getUniqueName());
         $this->assertNotNull($file);
         $this->assertInstanceOf(File::class, $file);
-        $this->assertSame($fileForFindRelPath->getPath() . "test3.txt", $file->getRelFullname());
+        $this->assertSame($fileForFindRelPath . "test3.txt", $file->getUniqueName());
     }
     public function testFindByRelativeFullname()
     {
@@ -47,36 +47,36 @@ class FileSystemTest  extends TestCase
         $fs = new Filesystem(new AbsPath($baseDir));
         $file = $fs->findByRelativeFullname($fileForFindRelPath);
         $this->assertNotNull($file);
-        $this->assertEquals("test3.txt", $file->getName());
+        $this->assertEquals("/children/test3.txt", $file->getUniqueName());
     }
     public function testFindDir()
     {
         $baseDir = new AbsPath(__DIR__ . "/testfolder");
         $fileForFindRelPath = new RelPath("");
         $fs = new Filesystem($baseDir);
-        $fileForFind = new File("children", $baseDir->addRelativePath($fileForFindRelPath), $fileForFindRelPath, null);
+        $fileForFind = new File("children", "", $fileForFindRelPath, true, null);
         $file = $fs->findFile($fileForFind);
-        $this->assertEquals("children", $file->getName());
+        $this->assertEquals("/children", $file->getUniqueName());
         $this->assertNotNull($file);
         $this->assertInstanceOf(File::class, $file);
-        $this->assertSame($fileForFindRelPath->getPath() . "children", $file->getRelFullname());
+        $this->assertSame($fileForFindRelPath . "children", $file->getUniqueName());
     }
     public function testCreate()
     {
         $baseDir = new AbsPath(__DIR__ . "/testfolder");
         $fs = new Filesystem($baseDir);
-        $fileForCreate = new File("fuck.txt", $baseDir, new RelPath(""), null);
-        $fileForCreate->loadContent("fuck the police");
-        $fs->create($fileForCreate, $fileForCreate->getRelPath());
+        $fileForCreate = new File("fuck.txt", "", new RelPath(), false, null);
+        $fs->create($fileForCreate, $content = "suka blya");
         $this->assertTrue(file_exists("$baseDir/fuck.txt"));
+        $this->assertEquals($content, file_get_contents("$baseDir/fuck.txt"));
         unlink("$baseDir/fuck.txt");
     }
     public function testCreateAlreadyExistFolder()
     {
         $baseDir = new AbsPath(__DIR__ . "/testfolder");
         $fs = new Filesystem($baseDir);
-        $fileForCreate = new File("children", $baseDir, new RelPath(""), null);
-        $fs->create($fileForCreate, $fileForCreate->getRelPath());
+        $fileForCreate = new File("children", "", new RelPath(), true, null);
+        $fs->create($fileForCreate, null);
         $this->assertTrue(file_exists("$baseDir/children"));
     }
 

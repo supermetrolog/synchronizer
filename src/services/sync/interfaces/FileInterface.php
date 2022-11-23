@@ -8,9 +8,9 @@ interface FileInterface
     public function isDir(): bool;
     public function getHash(): string;
     public function getParent(): ?FileInterface;
-    public function getRelPath(): string;
-    public function getAbsPath(): string;
-    public function getName(): string;
-    public function getRelFullname(): string;
-    public function getContent(): ?string;
+    // public function getRelPath(): string;
+    // public function getAbsPath(): string;
+    public function getUniqueName(): string;
+    // public function getRelFullname(): string;
+    // public function getContent(): ?string;
 }
