@@ -145,13 +145,6 @@ class Synchronizer
     }
     private function createParent(FileInterface $file, FileInterface $parent)
     {
-        if ($file->getParent() === null) {
-            $this->createFileInTargetRepo($file);
-            return;
-        }
-        if (!$this->targetFileRepository->findFile($file->getParent())) {
-            $this->createParent($file->getParent());
-        }
     }
     // private function createParent(FileInterface $file)
     // {
