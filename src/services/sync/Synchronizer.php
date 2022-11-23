@@ -115,13 +115,19 @@ class Synchronizer
     private function changeFiles(): void
     {
         foreach ($this->changingFiles as $file) {
-            if ($file->getParent() === null) {
-                $this->updateFileInTargetRepo($file);
-                continue;
-            }
-            $this->createFile($file->getParent());
-            $this->updateFileInTargetRepo($file);
+            $this->updateFile($file);
         }
+    }
+    private function updateFile(FileInterface $file): void
+    {
+        if ($file->getParent() === null) {
+            $this->updateFileInTargetRepo($file);
+            return;
+        }
+        if (!$this->targetFileRepository->findFile($file->getParent())) {
+            $this->createFile($file->getParent());
+        }
+        $this->updateFileInTargetRepo($file);
     }
     private function createFiles(): void
     {
@@ -129,16 +135,6 @@ class Synchronizer
             $this->createFile($file);
         }
     }
-    private function removeFiles(): void
-    {
-        foreach ($this->removingFiles as $file) {
-            echo "\n----- Removing file: " . $file->getUniqueName();
-            if (!$this->targetFileRepository->remove($file)) {
-                throw new LogicException("error when removing file");
-            }
-        }
-    }
-
     private function createFile(FileInterface $file): void
     {
         if ($file->getParent() === null) {
@@ -150,6 +146,17 @@ class Synchronizer
         }
         $this->createFileInTargetRepo($file);
     }
+    private function removeFiles(): void
+    {
+        foreach ($this->removingFiles as $file) {
+            echo "\n----- Removing file: " . $file->getUniqueName();
+            if (!$this->targetFileRepository->remove($file)) {
+                throw new LogicException("error when removing file");
+            }
+        }
+    }
+
+
     private function createFileInTargetRepo(FileInterface $file): void
     {
         echo "\n----- Creating file: " . $file->getUniqueName();
