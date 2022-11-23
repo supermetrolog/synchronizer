@@ -69,11 +69,14 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
     }
     public function create(FileInterface $file, ?string $content = null): bool
     {
-        // echo "\n" . $file->getUniqueName() . "\n";
         $filename = $this->dirpath . $file->getUniqueName();
         if ($file->isDir()) {
             if (file_exists($filename)) return true;
-            return mkdir($filename, 0777);
+            try {
+                return mkdir($filename, 0777);
+            } catch (\Throwable $th) {
+                throw $th;
+            }
         }
         $result = file_put_contents($filename, $content);
         if ($result === false) {

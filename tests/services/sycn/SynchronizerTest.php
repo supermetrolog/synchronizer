@@ -53,85 +53,100 @@ class SynchronizerTest  extends TestCase
         file_put_contents("$childrenFolder/test1.txt", "dermo");
         file_put_contents($baseFolder . "/test2.txt", '123suka55');
     }
-    // public function testLoadUpdatedData()
-    // {
+    public function testLoadUpdatedData()
+    {
 
-    //     $this->sync->load();
-    //     $changingFiles = $this->sync->getChangingFiles();
-    //     $creatingFiles = $this->sync->getCreatingFiles();
-    //     $removingFiles = $this->sync->getRemovingFiles();
-    //     $this->assertSame(true, $this->sync->affectedFilesExist());
-    //     $this->assertEmpty($changingFiles);
-    //     $this->assertEmpty($removingFiles);
-    //     $this->assertNotEmpty($creatingFiles);
-    //     $this->assertCount(4, $creatingFiles);
-    //     foreach ($creatingFiles as $file) {
-    //         $this->assertInstanceOf(FileInterface::class, $file);
-    //     }
-    //     $this->assertSame("/children/test1.txt", $creatingFiles[0]->getUniqueName());
-    //     $this->assertSame("/children", $creatingFiles[1]->getUniqueName());
-    //     $this->assertSame("/test.txt", $creatingFiles[2]->getUniqueName());
-    //     $this->assertSame("/test2.txt", $creatingFiles[3]->getUniqueName());
-    // }
+        $this->sync->load();
+        $changingFiles = $this->sync->getChangingFiles();
+        $creatingFiles = $this->sync->getCreatingFiles();
+        $removingFiles = $this->sync->getRemovingFiles();
+        $this->assertSame(true, $this->sync->affectedFilesExist());
+        $this->assertEmpty($changingFiles);
+        $this->assertEmpty($removingFiles);
+        $this->assertNotEmpty($creatingFiles);
+        $this->assertCount(4, $creatingFiles);
+        foreach ($creatingFiles as $file) {
+            $this->assertInstanceOf(FileInterface::class, $file);
+        }
+        $this->assertSame("/children/test1.txt", $creatingFiles[0]->getUniqueName());
+        $this->assertSame("/children", $creatingFiles[1]->getUniqueName());
+        $this->assertSame("/test.txt", $creatingFiles[2]->getUniqueName());
+        $this->assertSame("/test2.txt", $creatingFiles[3]->getUniqueName());
+    }
 
-    // public function testSync()
-    // {
-    //     $this->sync->load();
-    //     $this->sync->sync();
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children"));
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/test.txt"));
+    public function testSync()
+    {
+        $this->sync->load();
+        $this->sync->sync();
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/test.txt"));
 
-    //     $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
-    //     $this->assertEquals("dermo", file_get_contents(self::targetDirNameForSynchronize . "/children/test1.txt"));
-    // }
+        $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
+        $this->assertEquals("dermo", file_get_contents(self::targetDirNameForSynchronize . "/children/test1.txt"));
+    }
     public function testSyncWithManyNestedFolders()
     {
         $newNestedFolder = self::baseDirNameForSynchronize . "/children/fuck";
         mkdir($newNestedFolder);
+        mkdir($newNestedFolder . "/suka", 0777);
+        mkdir($newNestedFolder . "/suka/aaa", 0777);
+        mkdir($newNestedFolder . "/suka/aaa/ttt", 0777);
         file_put_contents($newNestedFolder . "/fuck.txt", "suka");
+        file_put_contents($newNestedFolder . "/suka/aaa/ttt/fuck1.txt", "fuck1");
         $this->sync->load();
         $this->sync->sync();
         $this->assertNotNull($this->targetRepo->findByRelativeFullname("/children/fuck/fuck.txt"));
+        $this->assertNotNull($this->targetRepo->findByRelativeFullname("/children/fuck/suka/aaa/ttt/fuck1.txt"));
     }
-    // public function testDoubleSync()
-    // {
-    //     $this->sync->load();
-    //     $this->sync->sync();
+    public function testSycnFileWithoutExtension()
+    {
+        $filename = self::baseDirNameForSynchronize . "/COMMIT_EDITMSG";
+        $content = "change test.txt";
+        file_put_contents($filename, $content);
+        $this->sync->load();
+        $this->sync->sync();
+        $this->assertTrue(file_exists($filename));
+        $this->assertEquals($content, file_get_contents(self::targetDirNameForSynchronize . "/COMMIT_EDITMSG"));
+    }
+    public function testDoubleSync()
+    {
+        $this->sync->load();
+        $this->sync->sync();
 
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children"));
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/test.txt"));
-    //     $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
-    //     $this->assertEquals("dermo", file_get_contents(self::targetDirNameForSynchronize . "/children/test1.txt"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/test.txt"));
+        $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
+        $this->assertEquals("dermo", file_get_contents(self::targetDirNameForSynchronize . "/children/test1.txt"));
 
-    //     file_put_contents(self::baseDirNameForSynchronize . "/test.txt", "update");
-    //     $this->assertEquals("update", file_get_contents(self::baseDirNameForSynchronize . "/test.txt"));
-    //     $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
-    //     $this->createData();
-    //     $this->sync->load();
-    //     $this->sync->sync();
-    //     $this->assertTrue($this->sync->affectedFilesExist());
-    //     $this->assertNotNull($this->sync->getChangingFiles());
-    //     $this->assertCount(1, $this->sync->getChangingFiles());
-    //     $this->assertEquals("/test.txt", $this->sync->getChangingFiles()[0]->getUniqueName());
-    //     $this->assertEquals("update", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
-    // }
-    // public function testRemovingFiles()
-    // {
-    //     $this->sync->load();
-    //     $this->sync->sync();
+        file_put_contents(self::baseDirNameForSynchronize . "/test.txt", "update");
+        $this->assertEquals("update", file_get_contents(self::baseDirNameForSynchronize . "/test.txt"));
+        $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
+        $this->createData();
+        $this->sync->load();
+        $this->sync->sync();
+        $this->assertTrue($this->sync->affectedFilesExist());
+        $this->assertNotNull($this->sync->getChangingFiles());
+        $this->assertCount(1, $this->sync->getChangingFiles());
+        $this->assertEquals("/test.txt", $this->sync->getChangingFiles()[0]->getUniqueName());
+        $this->assertEquals("update", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
+    }
+    public function testRemovingFiles()
+    {
+        $this->sync->load();
+        $this->sync->sync();
 
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children"));
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
-    //     $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/test.txt"));
-    //     $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
-    //     $this->assertEquals("dermo", file_get_contents(self::targetDirNameForSynchronize . "/children/test1.txt"));
-    //     Directory::rmdir(self::baseDirNameForSynchronize . "/children");
-    //     $this->createData();
-    //     $this->sync->load();
-    //     $this->sync->sync();
-    //     $this->assertFalse(file_exists(self::targetDirNameForSynchronize . "/children"));
-    //     $this->assertFalse(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
-    // }
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
+        $this->assertTrue(file_exists(self::targetDirNameForSynchronize . "/test.txt"));
+        $this->assertEquals("fuck the police", file_get_contents(self::targetDirNameForSynchronize . "/test.txt"));
+        $this->assertEquals("dermo", file_get_contents(self::targetDirNameForSynchronize . "/children/test1.txt"));
+        Directory::rmdir(self::baseDirNameForSynchronize . "/children");
+        $this->createData();
+        $this->sync->load();
+        $this->sync->sync();
+        $this->assertFalse(file_exists(self::targetDirNameForSynchronize . "/children"));
+        $this->assertFalse(file_exists(self::targetDirNameForSynchronize . "/children/test1.txt"));
+    }
 }

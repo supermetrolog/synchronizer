@@ -119,50 +119,46 @@ class Synchronizer
                 $this->updateFileInTargetRepo($file);
                 continue;
             }
-            $this->createParent($file->getParent());
+            $this->createFile($file->getParent());
             $this->updateFileInTargetRepo($file);
         }
     }
     private function createFiles(): void
     {
         foreach ($this->creatingFiles as $file) {
-            echo "\n" . $file->getUniqueName() . "\n";
-            if ($file->getParent() === null) {
-                $this->createFileInTargetRepo($file);
-                continue;
-            }
-            $this->createParent($file->getParent());
-            $this->createFileInTargetRepo($file);
+            $this->createFile($file);
         }
     }
     private function removeFiles(): void
     {
         foreach ($this->removingFiles as $file) {
+            echo "\n----- Removing file: " . $file->getUniqueName();
             if (!$this->targetFileRepository->remove($file)) {
                 throw new LogicException("error when removing file");
             }
         }
     }
-    private function createParent(FileInterface $file, FileInterface $parent)
+
+    private function createFile(FileInterface $file): void
     {
+        if ($file->getParent() === null) {
+            $this->createFileInTargetRepo($file);
+            return;
+        }
+        if (!$this->targetFileRepository->findFile($file->getParent())) {
+            $this->createFile($file->getParent());
+        }
+        $this->createFileInTargetRepo($file);
     }
-    // private function createParent(FileInterface $file)
-    // {
-    //     if ($file->getParent() === null) {
-    //         $this->createFileInTargetRepo($file);
-    //         return;
-    //     }
-    //     if (!$this->targetFileRepository->findFile($file->getParent())) {
-    //         $this->createParent($file->getParent());
-    //     }
-    // }
     private function createFileInTargetRepo(FileInterface $file): void
     {
+        echo "\n----- Creating file: " . $file->getUniqueName();
         if (!$this->targetFileRepository->create($file, $this->baseFileRepository->getContent($file)))
             throw new LogicException("error when create file");
     }
     private function updateFileInTargetRepo(FileInterface $file): void
     {
+        echo "\n----- Updating file: " . $file->getUniqueName();
         if (!$this->targetFileRepository->update($file, $this->baseFileRepository->getContent($file)))
             throw new LogicException("error when update file");
     }
