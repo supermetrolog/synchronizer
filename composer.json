@@ -3,8 +3,7 @@
     "description": "files synchronizer between servers",
     "autoload": {
         "psr-4": {
-            "Supermetrolog\\Synchronizer\\": "src/",
-            "tests\\": "tests/"
+            "Supermetrolog\\Synchronizer\\": "src/"
         }
     },
     "autoload-dev": {
@@ -16,6 +15,8 @@
         "name": "supermetrolog"
     }],
     "require": {
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5",
+        "psr/log": "^1.1",
+        "monolog/monolog": "^2.8"
     }
 }

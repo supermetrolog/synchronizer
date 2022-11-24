@@ -35,7 +35,8 @@ class SynchronizerTest  extends TestCase
         $this->baseRepo = new Filesystem(new AbsPath(self::baseDirNameForSynchronize));
         $this->targetRepo = new Filesystem(new AbsPath(self::targetDirNameForSynchronize));
         $this->oneFileRepo = new OneFile($this->targetRepo, "sync-file.txt");
-        $this->sync = new Synchronizer($this->baseRepo, $this->targetRepo, $this->oneFileRepo);
+        $logger = $this->createMock(Psr\Log\LoggerInterface::class);
+        $this->sync = new Synchronizer($this->baseRepo, $this->targetRepo, $this->oneFileRepo, $logger);
     }
     private function createDataForTestWithExistChanges(): void
     {

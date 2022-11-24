@@ -3,6 +3,7 @@
 namespace Supermetrolog\Synchronizer\services\sync;
 
 use LogicException;
+use Psr\Log\LoggerInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\AlreadySynchronizedRepositoryInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\BaseRepositoryInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
@@ -24,16 +25,18 @@ class Synchronizer
     // Нужно, чтобы исключить дублирование создания дирректорий в рекурсии
     private array $createdFiles = [];
 
-
     private BaseRepositoryInterface $baseFileRepository;
     private TargetRepositoryInterface $targetFileRepository;
     private AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository;
-    public function __construct(BaseRepositoryInterface $baseFileRepository, TargetRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository)
+
+    private LoggerInterface $logger;
+
+    public function __construct(BaseRepositoryInterface $baseFileRepository, TargetRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository, LoggerInterface $logger)
     {
         $this->baseFileRepository = $baseFileRepository;
         $this->targetFileRepository = $targetFileRepository;
-
         $this->alreadySynchronizedRepository = $alreadySynchronizedRepository;
+        $this->logger = $logger;
     }
     public function load(): void
     {
@@ -149,7 +152,7 @@ class Synchronizer
     private function removeFiles(): void
     {
         foreach ($this->removingFiles as $file) {
-            echo "\n----- Removing file: " . $file->getUniqueName();
+            $this->logger->info("----- Removing file: " . $file->getUniqueName());
             if (!$this->targetFileRepository->remove($file)) {
                 throw new LogicException("error when removing file");
             }
@@ -160,8 +163,7 @@ class Synchronizer
     {
         if (key_exists($file->getUniqueName(), $this->createdFiles)) return;
 
-        echo "\n----- Creating file: " . $file->getUniqueName();
-
+        $this->logger->info("----- Creating file: " . $file->getUniqueName());
         if (!$this->targetFileRepository->create($file, $this->baseFileRepository->getContent($file)))
             throw new LogicException("error when create file");
 
@@ -169,7 +171,7 @@ class Synchronizer
     }
     private function updateFileInTargetRepo(FileInterface $file): void
     {
-        echo "\n----- Updating file: " . $file->getUniqueName();
+        $this->logger->info("----- Updating file: " . $file->getUniqueName());
         if (!$this->targetFileRepository->update($file, $this->baseFileRepository->getContent($file)))
             throw new LogicException("error when update file");
     }
