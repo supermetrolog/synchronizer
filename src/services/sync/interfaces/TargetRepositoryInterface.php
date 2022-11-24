@@ -8,5 +8,5 @@ interface TargetRepositoryInterface
     public function remove(FileInterface $file): bool;
     public function create(FileInterface $file, ?string $content): bool;
     public function update(FileInterface $file, ?string $content): bool;
-    public function findFile(FileInterface $file): ?FileInterface;
+    public function fileExist(FileInterface $file): bool;
 }

@@ -127,7 +127,7 @@ class Synchronizer
             $this->updateFileInTargetRepo($file);
             return;
         }
-        if (!$this->targetFileRepository->findFile($file->getParent())) {
+        if (!$this->targetFileRepository->fileExist($file->getParent())) {
             $this->updateFile($file->getParent());
         }
         $this->updateFileInTargetRepo($file);
@@ -144,7 +144,7 @@ class Synchronizer
             $this->createFileInTargetRepo($file);
             return;
         }
-        if (!$this->targetFileRepository->findFile($file->getParent())) {
+        if (!$this->targetFileRepository->fileExist($file->getParent())) {
             $this->createFile($file->getParent());
         }
         $this->createFileInTargetRepo($file);

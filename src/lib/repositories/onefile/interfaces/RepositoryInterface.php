@@ -8,6 +8,5 @@ interface RepositoryInterface
 {
     public function findByRelativeFullname(string $relativeName): ?FileInterface;
     public function createOrUpdateFileWithContent(string $content, string $filename, string $relativePath = ""): bool;
-    public function getDirpath(): string;
     public function getContent(FileInterface $file): ?string;
 }

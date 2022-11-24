@@ -37,6 +37,10 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
         }
         return null;
     }
+    public function fileExist(FileInterface $file): bool
+    {
+        return $this->findFile($file) === null ? false : true;
+    }
     public function findByRelativeFullname(string $relativeName): ?FileInterface
     {
         $relativeName = "/$relativeName";
