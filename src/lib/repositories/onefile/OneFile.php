@@ -79,7 +79,7 @@ class OneFile implements AlreadySynchronizedRepositoryInterface
     }
     private function createOrUpdateSyncFile(): void
     {
-        if (!$this->repo->createOrUpdateFileWithContent(serialize($this->files), $this->filename))
+        if (!$this->repo->createOrUpdate(serialize($this->files), $this->filename))
             throw new LogicException("error when create or update sync file");
     }
     public function markFileAsDirty(FileInterface $file): void

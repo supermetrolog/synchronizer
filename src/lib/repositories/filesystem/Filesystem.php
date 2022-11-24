@@ -56,7 +56,7 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
     {
         return $this->dirpath;
     }
-    public function createOrUpdateFileWithContent(string $content, string $filename, string $relativePath = ""): bool
+    public function createOrUpdate(string $content, string $filename, string $relativePath = ""): bool
     {
         return $this->createFileWithContent($content, $filename, $relativePath);
     }

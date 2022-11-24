@@ -2,6 +2,8 @@
 
 namespace Supermetrolog\Synchronizer\lib\repositories\ftpfilesystem;
 
+use League\Flysystem\DirectoryAttributes;
+use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\PathNormalizer;
@@ -12,13 +14,20 @@ use Supermetrolog\Synchronizer\lib\repositories\onefile\interfaces\RepositoryInt
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
 
+/**
+ * @property resource $connection
+ */
 class FtpFileSystemAdapter extends Filesystem implements TargetRepositoryInterface, RepositoryInterface
 {
     private AbsPath $dirpath;
-
-    public function __construct(AbsPath $dirpath, FilesystemAdapter $adapter, array $config = [], ?PathNormalizer $pathNormalizer = null)
+    private $connection;
+    /**
+     * @param resource $connection
+     */
+    public function __construct(AbsPath $dirpath, $connection, FilesystemAdapter $adapter, array $config = [], ?PathNormalizer $pathNormalizer = null)
     {
         $this->dirpath = $dirpath;
+        $this->connection = $connection;
         parent::__construct($adapter, $config, $pathNormalizer);
     }
     public function remove(FileInterface $file): bool
@@ -46,8 +55,22 @@ class FtpFileSystemAdapter extends Filesystem implements TargetRepositoryInterfa
         }
         return $this->create($file, $content);
     }
+    public function directoryExists(FileInterface $file): bool
+    {
+        /**@var \FTP\Connection */
+        $connection = $this->connection;
+        if (@ftp_chdir($connection, $file->getUniqueName()) === true) {
+            @ftp_chdir($connection, "/" . $this->dirpath);
+            return true;
+        }
+        return false;
+    }
     public function fileExist(FileInterface $file): bool
     {
+        if ($file->isDir()) {
+            // return $this->find($file) ? true : false;
+            return $this->directoryExists($file);
+        }
         return $this->fileExists($this->getFilename($file));
     }
 
@@ -55,28 +78,56 @@ class FtpFileSystemAdapter extends Filesystem implements TargetRepositoryInterfa
     {
         return $this->dirpath . $file->getUniqueName();
     }
-
+    private function find(FileInterface $file): ?FileInterface
+    {
+        $response = $this->listContents($this->dirpath, Filesystem::LIST_DEEP);
+        foreach ($response as $item) {
+            if ($item->path() == substr($file->getUniqueName(), 1)) {
+                return $this->createFile($item);
+            }
+        }
+        return null;
+    }
     public function findByRelativeFullname(string $relativeName): ?FileInterface
     {
         $response = $this->listContents($this->dirpath, Filesystem::LIST_DEEP);
         foreach ($response as $item) {
             if ($item->path() == $relativeName) {
-                if ($item instanceof \League\Flysystem\FileAttributes) {
-                    $chunks = split("/", $item->path());
-                    $name = $chunks[count($chunks) - 1];
-                    
-                    $content = $this->read($this->dirpath . "/" . $item->path());
-                    $hash = md5($content);
-
-                    new File($name, $hash, new RelPath($item->))
-                } elseif ($item instanceof \League\Flysystem\DirectoryAttributes) {
-                    // handle the directory
-                }
+                return $this->createFile($item);
             }
         }
+        return null;
     }
-    public function createOrUpdateFileWithContent(string $content, string $filename, string $relativePath = ""): bool
+    /**
+     * @param FileAttributes|DirectoryAttributes $item
+     */
+    private function createFile($item): File
     {
+        $lastSlashPosition = mb_strpos($item->path(), "/");
+        $name = "";
+        $relPath = "";
+        if ($lastSlashPosition === false) {
+            $name = $item->path();
+        } else {
+            $name = mb_strrchr($item->path(), "/");
+            $name = substr($name, 1);
+
+            $relPath = substr($item->path(), 0, $lastSlashPosition);
+        }
+        $hash = "";
+        if ($item instanceof FileAttributes) {
+            $content = $this->read($this->dirpath . "/" . $item->path());
+            $hash = md5($content);
+            $isDir = false;
+        } elseif ($item instanceof DirectoryAttributes) {
+            $isDir = true;
+        }
+        return new File($name, $hash, new RelPath($relPath), $isDir, null);
+    }
+    public function createOrUpdate(string $content, string $filename): bool
+    {
+        $this->write($this->dirpath . "/" . $filename, $content);
+        return true;
     }
     public function getContent(FileInterface $file): ?string
     {
