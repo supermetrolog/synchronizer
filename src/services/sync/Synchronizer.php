@@ -12,13 +12,17 @@ use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterfac
  * @property FileInterface[] $changingFiles
  * @property FileInterface[] $creatingFiles
  * @property FileInterface[] $removingFiles
+ * @property array<string, FileInterface[]> $createdFiles
  */
 
 class Synchronizer
 {
-    private array $changingFiles;
-    private array $creatingFiles;
-    private array $removingFiles;
+    private array $changingFiles = [];
+    private array $creatingFiles = [];
+    private array $removingFiles = [];
+
+    // Нужно, чтобы исключить дублирование создания дирректорий в рекурсии
+    private array $createdFiles = [];
 
 
     private BaseRepositoryInterface $baseFileRepository;
@@ -26,10 +30,6 @@ class Synchronizer
     private AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository;
     public function __construct(BaseRepositoryInterface $baseFileRepository, TargetRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository)
     {
-        $this->changingFiles = [];
-        $this->creatingFiles = [];
-        $this->removingFiles = [];
-
         $this->baseFileRepository = $baseFileRepository;
         $this->targetFileRepository = $targetFileRepository;
 
@@ -125,7 +125,7 @@ class Synchronizer
             return;
         }
         if (!$this->targetFileRepository->findFile($file->getParent())) {
-            $this->createFile($file->getParent());
+            $this->updateFile($file->getParent());
         }
         $this->updateFileInTargetRepo($file);
     }
@@ -156,12 +156,16 @@ class Synchronizer
         }
     }
 
-
     private function createFileInTargetRepo(FileInterface $file): void
     {
+        if (key_exists($file->getUniqueName(), $this->createdFiles)) return;
+
         echo "\n----- Creating file: " . $file->getUniqueName();
+
         if (!$this->targetFileRepository->create($file, $this->baseFileRepository->getContent($file)))
             throw new LogicException("error when create file");
+
+        $this->createdFiles[$file->getUniqueName()] = $file;
     }
     private function updateFileInTargetRepo(FileInterface $file): void
     {
