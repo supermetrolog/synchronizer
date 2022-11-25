@@ -16,13 +16,12 @@ class OneFile implements AlreadySynchronizedRepositoryInterface
 {
     private string $filename;
     private RepositoryInterface $repo;
-    private array $files;
-    private array $dirtyFileKeys;
+    private array $files = [];
+    private array $dirtyFileKeys = [];
     public function __construct(RepositoryInterface $repo, string $filename)
     {
         $this->filename = $filename;
         $this->repo = $repo;
-        $this->files = [];
         $this->loadContent();
     }
     private function loadContent(): void
