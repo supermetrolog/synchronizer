@@ -6,6 +6,8 @@ use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\Ftp\FtpAdapter;
+use League\Flysystem\Ftp\FtpConnectionOptions;
 use League\Flysystem\PathNormalizer;
 use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\AbsPath;
 use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\File;
@@ -17,7 +19,7 @@ use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterfac
 /**
  * @property resource $connection
  */
-class FtpFileSystemAdapter extends Filesystem implements TargetRepositoryInterface, RepositoryInterface
+class FtpFilesystem extends Filesystem implements TargetRepositoryInterface, RepositoryInterface
 {
     private AbsPath $dirpath;
     private $connection;
@@ -30,6 +32,15 @@ class FtpFileSystemAdapter extends Filesystem implements TargetRepositoryInterfa
         $this->connection = $connection;
         parent::__construct($adapter, $config, $pathNormalizer);
     }
+
+
+    public static function getInstance(string $dirpath, FtpConnectionOptions $options): self
+    {
+        $connProvider = new FtpConnectionProvider($options);
+        $adapter = new FtpAdapter($options, $connProvider);
+        return new self(new AbsPath($dirpath), $connProvider->getConnection(), $adapter);
+    }
+
     public function remove(FileInterface $file): bool
     {
         if ($file->isDir()) {
@@ -59,8 +70,9 @@ class FtpFileSystemAdapter extends Filesystem implements TargetRepositoryInterfa
     {
         /**@var \FTP\Connection */
         $connection = $this->connection;
+        $preventPath = @ftp_pwd($connection);
         if (@ftp_chdir($connection, $file->getUniqueName()) === true) {
-            @ftp_chdir($connection, "/" . $this->dirpath);
+            @ftp_chdir($connection, $preventPath);
             return true;
         }
         return false;
@@ -78,16 +90,7 @@ class FtpFileSystemAdapter extends Filesystem implements TargetRepositoryInterfa
     {
         return $this->dirpath . $file->getUniqueName();
     }
-    private function find(FileInterface $file): ?FileInterface
-    {
-        $response = $this->listContents($this->dirpath, Filesystem::LIST_DEEP);
-        foreach ($response as $item) {
-            if ($item->path() == substr($file->getUniqueName(), 1)) {
-                return $this->createFile($item);
-            }
-        }
-        return null;
-    }
+
     public function findByRelativeFullname(string $relativeName): ?FileInterface
     {
         $response = $this->listContents($this->dirpath, Filesystem::LIST_DEEP);

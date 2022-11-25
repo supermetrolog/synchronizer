@@ -1,6 +1,28 @@
 {
     "name": "supermetrolog/synchronizer",
     "description": "files synchronizer between servers",
+    "keywords": [
+        "sync", "synchronize", "merge", "ftp", "filesystem",
+        "file"
+    ],
+    "scripts": {
+        "test": "./vendor/bin/phpunit -c phpunit.xml"
+    },
+    "authors": [{
+        "name": "supermetrolog",
+        "email": "billypro6@gmail.com"
+    }],
+    "type": "library",
+    "require": {
+        "php": "^7.4",
+        "psr/log": "^1.1"
+    },
+    "require-dev": {
+        "monolog/monolog": "^2.8",
+        "phpunit/phpunit": "^9.5",
+        "league/flysystem": "^2.5",
+        "league/flysystem-ftp": "^2.4"
+    },
     "autoload": {
         "psr-4": {
             "Supermetrolog\\Synchronizer\\": "src/"
@@ -11,15 +33,5 @@
             "tests\\": "tests/"
         }
     },
-    "authors": [{
-        "name": "supermetrolog"
-    }],
-    "require": {
-        "phpunit/phpunit": "^9.5",
-        "psr/log": "^1.1",
-        "monolog/monolog": "^2.8",
-        "nicolab/php-ftp-client": "^2.0",
-        "league/flysystem": "^2.5",
-        "league/flysystem-ftp": "^2.4"
-    }
+    "license": "MIT"
 }

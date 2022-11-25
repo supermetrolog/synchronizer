@@ -16,6 +16,12 @@ class FtpConnectionProvider extends FtpFtpConnectionProvider implements Connecti
 {
     public $connection;
 
+
+    public function __construct(FtpConnectionOptions $options)
+    {
+        $this->connection = $this->createConnection($options);
+    }
+
     /**
      * @return resource
      *
@@ -43,7 +49,6 @@ class FtpConnectionProvider extends FtpFtpConnectionProvider implements Connecti
             ftp_close($connection);
             throw $exception;
         }
-        $this->connection = $connection;
         return $connection;
     }
     /**

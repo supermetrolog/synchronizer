@@ -23,6 +23,10 @@ class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, 
             throw new InvalidArgumentException("base dir path is not directory");
         $this->dirpath = $dirpath;
     }
+    public static function getInstance(string $dirpath): self
+    {
+        return new self(new AbsPath($dirpath));
+    }
     public function getStream(): StreamInterface
     {
         return new Stream($this->dirpath);
