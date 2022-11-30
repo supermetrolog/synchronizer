@@ -109,6 +109,9 @@ class FtpFilesystem extends Filesystem implements TargetRepositoryInterface, Rep
         $lastSlashPosition = mb_strpos($item->path(), "/");
         $name = "";
         $relPath = "";
+        $hash = "";
+        $isDir = false;
+
         if ($lastSlashPosition === false) {
             $name = $item->path();
         } else {
@@ -117,7 +120,7 @@ class FtpFilesystem extends Filesystem implements TargetRepositoryInterface, Rep
 
             $relPath = substr($item->path(), 0, $lastSlashPosition);
         }
-        $hash = "";
+
         if ($item instanceof FileAttributes) {
             $content = $this->read($this->dirpath . "/" . $item->path());
             $hash = md5($content);
@@ -125,6 +128,7 @@ class FtpFilesystem extends Filesystem implements TargetRepositoryInterface, Rep
         } elseif ($item instanceof DirectoryAttributes) {
             $isDir = true;
         }
+
         return new File($name, $hash, new RelPath($relPath), $isDir, null);
     }
     public function createOrUpdate(string $content, string $filename): bool

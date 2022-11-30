@@ -7,9 +7,11 @@ use LogicException;
 use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\AbsPath;
 use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\File;
 use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\RelPath;
-use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\StreamInterface;
 
+/**
+ * @property resource $lastHandle
+ */
 class Stream implements StreamInterface
 {
     private AbsPath $dirpath;

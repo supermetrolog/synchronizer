@@ -21,7 +21,8 @@
     },
     "require-dev": {
         "monolog/monolog": "^2.8",
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5",
+        "phpstan/phpstan": "^1.9"
     },
     "autoload": {
         "psr-4": {
