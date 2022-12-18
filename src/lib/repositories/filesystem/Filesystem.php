@@ -5,12 +5,12 @@ namespace Supermetrolog\Synchronizer\lib\repositories\filesystem;
 use InvalidArgumentException;
 use Supermetrolog\Synchronizer\lib\repositories\filesystem\file\AbsPath;
 use Supermetrolog\Synchronizer\lib\repositories\onefile\interfaces\RepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\BaseRepositoryInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
+use Supermetrolog\Synchronizer\services\sync\interfaces\SourceRepositoryInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\StreamInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
 
-class Filesystem implements BaseRepositoryInterface, TargetRepositoryInterface, RepositoryInterface
+class Filesystem implements SourceRepositoryInterface, TargetRepositoryInterface, RepositoryInterface
 {
     private AbsPath $dirpath;
     public function __construct(AbsPath $dirpath)

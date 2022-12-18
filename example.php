@@ -10,7 +10,7 @@ use Supermetrolog\Synchronizer\lib\repositories\ftpfilesystem\FtpFilesystem;
 use Supermetrolog\Synchronizer\lib\repositories\onefile\OneFile;
 use Supermetrolog\Synchronizer\services\sync\Synchronizer;
 
-$baseRepository = Filesystem::getInstance(__DIR__ . "/example/basefolder");
+$sourceRepository = Filesystem::getInstance(__DIR__ . "/example/basefolder");
 
 $targetRepository = FtpFilesystem::getInstance(".", FtpConnectionOptions::fromArray(
     [
@@ -36,7 +36,7 @@ $logger = new Logger("console");
 $stdout = fopen('php://stdout', 'w');
 $logger->pushHandler(new StreamHandler($stdout, Logger::INFO));
 
-$sync = new Synchronizer($baseRepository, $targetRepository, $alreadySynchronizedRepository, $logger);
+$sync = new Synchronizer($sourceRepository, $targetRepository, $alreadySynchronizedRepository, $logger);
 $sync->load();
 $sync->sync();
 

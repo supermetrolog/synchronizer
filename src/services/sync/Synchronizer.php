@@ -5,7 +5,7 @@ namespace Supermetrolog\Synchronizer\services\sync;
 use LogicException;
 use Psr\Log\LoggerInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\AlreadySynchronizedRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\BaseRepositoryInterface;
+use Supermetrolog\Synchronizer\services\sync\interfaces\SourceRepositoryInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
 use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
 
@@ -25,13 +25,13 @@ class Synchronizer
     // Нужно, чтобы исключить дублирование создания дирректорий в рекурсии
     private array $createdFiles = [];
 
-    private BaseRepositoryInterface $baseFileRepository;
+    private SourceRepositoryInterface $baseFileRepository;
     private TargetRepositoryInterface $targetFileRepository;
     private AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository;
 
     private LoggerInterface $logger;
 
-    public function __construct(BaseRepositoryInterface $baseFileRepository, TargetRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository, LoggerInterface $logger)
+    public function __construct(SourceRepositoryInterface $baseFileRepository, TargetRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository, LoggerInterface $logger)
     {
         $this->baseFileRepository = $baseFileRepository;
         $this->targetFileRepository = $targetFileRepository;
@@ -50,6 +50,9 @@ class Synchronizer
     {
         $stream = $this->baseFileRepository->getStream();
         foreach ($stream->read() as $file) {
+            if ($file->isDir())
+                $this->logger->info("----- Processed directory: " . $file->getUniqueName());
+
             $this->creatingFiles[] = $file;
         }
     }
@@ -57,6 +60,9 @@ class Synchronizer
     {
         $stream = $this->baseFileRepository->getStream();
         foreach ($stream->read() as $file) {
+            if ($file->isDir())
+                $this->logger->info("----- Processed directory: " . $file->getUniqueName());
+
             $fileInSyncReader = $this->alreadySynchronizedRepository->findFile($file);
             if ($fileInSyncReader === null) {
                 $this->creatingFiles[] = $file;
