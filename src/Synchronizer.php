@@ -4,10 +4,7 @@ namespace Supermetrolog\Synchronizer;
 
 use LogicException;
 use Psr\Log\LoggerInterface;
-use Supermetrolog\Synchronizer\interfaces\AlreadySynchronizedRepositoryInterface;
 use Supermetrolog\Synchronizer\interfaces\FileInterface;
-use Supermetrolog\Synchronizer\interfaces\SourceRepositoryInterface;
-use Supermetrolog\Synchronizer\interfaces\TargetRepositoryInterface;
 
 class Synchronizer
 {
@@ -24,26 +21,19 @@ class Synchronizer
      */
     private array $createdFiles = [];
 
-    private SourceRepositoryInterface $baseFileRepository;
-    private TargetRepositoryInterface $targetFileRepository;
-    private AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository;
-
+    private Repositories $repositories;
     private LoggerInterface $logger;
 
     public function __construct(
-        SourceRepositoryInterface $baseFileRepository,
-        TargetRepositoryInterface $targetFileRepository,
-        AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository,
+        Repositories $repositories,
         LoggerInterface $logger
     ) {
-        $this->baseFileRepository = $baseFileRepository;
-        $this->targetFileRepository = $targetFileRepository;
-        $this->alreadySynchronizedRepository = $alreadySynchronizedRepository;
+        $this->repositories = $repositories;
         $this->logger = $logger;
     }
     public function load(): void
     {
-        if ($this->alreadySynchronizedRepository->isEmpty()) {
+        if ($this->repositories->alreadyRepo->isEmpty()) {
             $this->firstLoadData();
         } else {
             $this->loadData();
@@ -51,7 +41,7 @@ class Synchronizer
     }
     private function firstLoadData(): void
     {
-        $stream = $this->baseFileRepository->getStream();
+        $stream = $this->repositories->sourceRepo->getStream();
         foreach ($stream->read() as $file) {
             if ($file->isDir()) {
                 $this->logger->info("----- Processed directory: " . $file->getUniqueName());
@@ -62,18 +52,18 @@ class Synchronizer
     }
     private function loadData(): void
     {
-        $stream = $this->baseFileRepository->getStream();
+        $stream = $this->repositories->sourceRepo->getStream();
         foreach ($stream->read() as $file) {
             if ($file->isDir()) {
                 $this->logger->info("----- Processed directory: " . $file->getUniqueName());
             }
 
-            $fileInSyncReader = $this->alreadySynchronizedRepository->findFile($file);
+            $fileInSyncReader = $this->repositories->alreadyRepo->findFile($file);
             if ($fileInSyncReader === null) {
                 $this->creatingFiles[] = $file;
                 continue;
             }
-            $this->alreadySynchronizedRepository->markFileAsDirty($file);
+            $this->repositories->alreadyRepo->markFileAsDirty($file);
 
             if ($file->isDir()) {
                 if ($fileInSyncReader->isDir()) {
@@ -90,7 +80,7 @@ class Synchronizer
         }
         $this->removingFiles = array_merge(
             $this->removingFiles,
-            $this->alreadySynchronizedRepository->getNotDirtyFiles()
+            $this->repositories->alreadyRepo->getNotDirtyFiles()
         );
     }
 
@@ -127,7 +117,7 @@ class Synchronizer
         $this->removeFiles();
         $this->createFiles();
         $this->changeFiles();
-        $this->alreadySynchronizedRepository->updateRepository(
+        $this->repositories->alreadyRepo->updateRepository(
             $this->creatingFiles,
             $this->changingFiles,
             $this->removingFiles
@@ -145,7 +135,7 @@ class Synchronizer
             $this->updateFileInTargetRepo($file);
             return;
         }
-        if (!$this->targetFileRepository->fileExist($file->getParent())) {
+        if (!$this->repositories->targetRepo->fileExist($file->getParent())) {
             $this->updateFile($file->getParent());
         }
         $this->updateFileInTargetRepo($file);
@@ -162,7 +152,7 @@ class Synchronizer
             $this->createFileInTargetRepo($file);
             return;
         }
-        if (!$this->targetFileRepository->fileExist($file->getParent())) {
+        if (!$this->repositories->targetRepo->fileExist($file->getParent())) {
             $this->createFile($file->getParent());
         }
         $this->createFileInTargetRepo($file);
@@ -171,7 +161,7 @@ class Synchronizer
     {
         foreach ($this->removingFiles as $file) {
             $this->logger->info("----- Removing file: " . $file->getUniqueName());
-            if (!$this->targetFileRepository->remove($file)) {
+            if (!$this->repositories->targetRepo->remove($file)) {
                 throw new LogicException("error when removing file");
             }
         }
@@ -184,7 +174,7 @@ class Synchronizer
         }
 
         $this->logger->info("----- Creating file: " . $file->getUniqueName());
-        if (!$this->targetFileRepository->create($file, $this->baseFileRepository->getContent($file))) {
+        if (!$this->repositories->targetRepo->create($file, $this->repositories->sourceRepo->getContent($file))) {
             throw new LogicException("error when create file");
         }
 
@@ -193,7 +183,7 @@ class Synchronizer
     private function updateFileInTargetRepo(FileInterface $file): void
     {
         $this->logger->info("----- Updating file: " . $file->getUniqueName());
-        if (!$this->targetFileRepository->update($file, $this->baseFileRepository->getContent($file))) {
+        if (!$this->repositories->targetRepo->update($file, $this->repositories->sourceRepo->getContent($file))) {
             throw new LogicException("error when update file");
         }
     }

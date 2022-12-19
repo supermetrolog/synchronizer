@@ -1,18 +1,19 @@
 <?php
 
-namespace tests;
+namespace tests\unit;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Supermetrolog\Synchronizer\interfaces\AlreadySynchronizedRepositoryInterface;
 use Supermetrolog\Synchronizer\interfaces\SourceRepositoryInterface;
 use Supermetrolog\Synchronizer\interfaces\TargetRepositoryInterface;
+use Supermetrolog\Synchronizer\Repositories;
 use Supermetrolog\Synchronizer\Synchronizer;
 use tests\unit\mocks\AlreadySynchronizedRepo;
 use tests\unit\mocks\SourceRepository;
 use tests\unit\mocks\TargetRepository;
 
-class SyncTest extends TestCase
+class SynchronizerTest extends TestCase
 {
     private SourceRepositoryInterface $sourceRepo;
     private AlreadySynchronizedRepositoryInterface $alreadyRepoEmpty;
@@ -26,11 +27,17 @@ class SyncTest extends TestCase
         $this->alreadyRepoEmpty = AlreadySynchronizedRepo::getEmptyMock();
         $this->alreadyRepoNotEmpty = AlreadySynchronizedRepo::getNotEmptyMock();
         $this->targetRepo = TargetRepository::getMock();
+
         $this->logger = $this->createMock(LoggerInterface::class);
     }
     public function testFirstLoad(): void
     {
-        $sync = new Synchronizer($this->sourceRepo, $this->targetRepo, $this->alreadyRepoEmpty, $this->logger);
+        $repositories = new Repositories(
+            $this->alreadyRepoEmpty,
+            $this->sourceRepo,
+            $this->targetRepo
+        );
+        $sync = new Synchronizer($repositories, $this->logger);
         $sync->load();
         $this->assertTrue($sync->affectedFilesExist());
         $this->assertCount(count(SourceRepository::getFiles()), $sync->getCreatingFiles());
@@ -40,7 +47,12 @@ class SyncTest extends TestCase
 
     public function testSecondLoad(): void
     {
-        $sync = new Synchronizer($this->sourceRepo, $this->targetRepo, $this->alreadyRepoNotEmpty, $this->logger);
+        $repositories = new Repositories(
+            $this->alreadyRepoNotEmpty,
+            $this->sourceRepo,
+            $this->targetRepo
+        );
+        $sync = new Synchronizer($repositories, $this->logger);
         $sync->load();
         $this->assertTrue($sync->affectedFilesExist());
         $this->assertCount(5, $sync->getCreatingFiles());
@@ -62,8 +74,12 @@ class SyncTest extends TestCase
             }));
         /** @var \PHPUnit\Framework\MockObject\MockObject $alreadyRepo */
         $alreadyRepo = $this->alreadyRepoEmpty;
-
-        $sync = new Synchronizer($this->sourceRepo, $this->targetRepo, $this->alreadyRepoEmpty, $this->logger);
+        $repositories = new Repositories(
+            $this->alreadyRepoEmpty,
+            $this->sourceRepo,
+            $this->targetRepo
+        );
+        $sync = new Synchronizer($repositories, $this->logger);
         $sync->load();
         $alreadyRepo
             ->expects($this->once())
@@ -104,8 +120,12 @@ class SyncTest extends TestCase
             }));
         /** @var \PHPUnit\Framework\MockObject\MockObject $alreadyRepo */
         $alreadyRepo = $this->alreadyRepoNotEmpty;
-
-        $sync = new Synchronizer($this->sourceRepo, $this->targetRepo, $this->alreadyRepoNotEmpty, $this->logger);
+        $repositories = new Repositories(
+            $this->alreadyRepoNotEmpty,
+            $this->sourceRepo,
+            $this->targetRepo
+        );
+        $sync = new Synchronizer($repositories, $this->logger);
         $sync->load();
         $alreadyRepo
             ->expects($this->once())
