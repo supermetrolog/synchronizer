@@ -10,9 +10,9 @@
         "file"
     ],
     "scripts": {
-        "test": "./vendor/bin/phpunit -c phpunit.xml",
-        "phpstan": "./vendor/bin/phpstan analyse src tests --level=6",
-        "phpcs": "./vendor/bin/phpcs src -v"
+        "test": "./vendor/bin/phpunit",
+        "phpstan": "./vendor/bin/phpstan analyse --xdebug",
+        "phpcs": "./vendor/bin/phpcs"
     },
     "authors": [{
         "name": "supermetrolog",

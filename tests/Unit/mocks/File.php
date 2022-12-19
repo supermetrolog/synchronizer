@@ -18,7 +18,10 @@ class File extends TestCase
         $files = [];
 
         foreach ($params as $param) {
-            $files[] = $self->getMock($param);
+            $file = $self->getMock($param);
+            if ($file !== null) {
+                $files[] = $file;
+            }
         }
 
         return $files;
