@@ -7,7 +7,7 @@ use Generator;
 interface StreamInterface
 {
     /**
-     * @return FileInterface[]
+     * @return Generator<FileInterface>
      */
     public function read(): Generator;
 }

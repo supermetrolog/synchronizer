@@ -9,20 +9,19 @@ use Supermetrolog\Synchronizer\interfaces\FileInterface;
 use Supermetrolog\Synchronizer\interfaces\SourceRepositoryInterface;
 use Supermetrolog\Synchronizer\interfaces\TargetRepositoryInterface;
 
-/**
- * @property FileInterface[] $changingFiles
- * @property FileInterface[] $creatingFiles
- * @property FileInterface[] $removingFiles
- * @property array<string, FileInterface[]> $createdFiles
- */
-
 class Synchronizer
 {
+    /** @var FileInterface[] $changingFiles */
     private array $changingFiles = [];
+    /** @var FileInterface[] $creatingFiles */
     private array $creatingFiles = [];
+    /** @var FileInterface[] $removingFiles */
     private array $removingFiles = [];
 
-    // Нужно, чтобы исключить дублирование создания дирректорий в рекурсии
+    /**
+     * Нужно, чтобы исключить дублирование создания дирректорий в рекурсии
+     * @var FileInterface[] $createdFiles
+     */
     private array $createdFiles = [];
 
     private SourceRepositoryInterface $baseFileRepository;
@@ -114,7 +113,7 @@ class Synchronizer
             count($this->removingFiles) != 0;
     }
 
-    public function sync()
+    public function sync(): void
     {
         $this->removeFiles();
         $this->createFiles();
