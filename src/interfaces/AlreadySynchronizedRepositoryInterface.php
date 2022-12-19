@@ -1,6 +1,6 @@
 <?php
 
-namespace Supermetrolog\Synchronizer\services\sync\interfaces;
+namespace Supermetrolog\Synchronizer\interfaces;
 
 interface AlreadySynchronizedRepositoryInterface
 {

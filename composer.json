@@ -2,11 +2,16 @@
     "name": "supermetrolog/synchronizer",
     "description": "files synchronizer between servers",
     "keywords": [
-        "sync", "synchronize", "merge", "ftp", "filesystem",
+        "sync",
+        "synchronize",
+        "merge",
+        "ftp",
+        "filesystem",
         "file"
     ],
     "scripts": {
-        "test": "./vendor/bin/phpunit -c phpunit.xml"
+        "test": "./vendor/bin/phpunit -c phpunit.xml",
+        "analyse": "./vendor/bin/phpstan analyse src --level=6"
     },
     "authors": [{
         "name": "supermetrolog",
@@ -15,12 +20,9 @@
     "type": "library",
     "require": {
         "php": "^7.4",
-        "psr/log": "^1.1",
-        "league/flysystem": "^2.5",
-        "league/flysystem-ftp": "^2.4"
+        "psr/log": "^1.1"
     },
     "require-dev": {
-        "monolog/monolog": "^2.8",
         "phpunit/phpunit": "^9.5",
         "phpstan/phpstan": "^1.9"
     },

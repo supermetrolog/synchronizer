@@ -1,10 +1,10 @@
 <?php
 
-namespace tests\services\sync\mocks;
+namespace tests\unit\mocks;
 
 use PHPUnit\Framework\TestCase;
-use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
+use Supermetrolog\Synchronizer\interfaces\FileInterface;
+use Supermetrolog\Synchronizer\interfaces\TargetRepositoryInterface;
 
 class TargetRepository extends TestCase
 {

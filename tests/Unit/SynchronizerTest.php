@@ -2,13 +2,13 @@
 
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\AlreadySynchronizedRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\SourceRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\Synchronizer;
-use tests\services\sync\mocks\AlreadySynchronizedRepo;
-use tests\services\sync\mocks\SourceRepository;
-use tests\services\sync\mocks\TargetRepository;
+use Supermetrolog\Synchronizer\interfaces\AlreadySynchronizedRepositoryInterface;
+use Supermetrolog\Synchronizer\interfaces\SourceRepositoryInterface;
+use Supermetrolog\Synchronizer\interfaces\TargetRepositoryInterface;
+use Supermetrolog\Synchronizer\Synchronizer;
+use tests\unit\mocks\AlreadySynchronizedRepo;
+use tests\unit\mocks\SourceRepository;
+use tests\unit\mocks\TargetRepository;
 
 class SyncTest  extends TestCase
 {

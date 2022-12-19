@@ -1,13 +1,13 @@
 <?php
 
-namespace Supermetrolog\Synchronizer\services\sync;
+namespace Supermetrolog\Synchronizer;
 
 use LogicException;
 use Psr\Log\LoggerInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\AlreadySynchronizedRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\SourceRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\FileInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\TargetRepositoryInterface;
+use Supermetrolog\Synchronizer\interfaces\AlreadySynchronizedRepositoryInterface;
+use Supermetrolog\Synchronizer\interfaces\FileInterface;
+use Supermetrolog\Synchronizer\interfaces\SourceRepositoryInterface;
+use Supermetrolog\Synchronizer\interfaces\TargetRepositoryInterface;
 
 /**
  * @property FileInterface[] $changingFiles

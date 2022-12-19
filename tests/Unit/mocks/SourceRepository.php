@@ -1,12 +1,11 @@
 <?php
 
-namespace tests\services\sync\mocks;
+namespace tests\unit\mocks;
 
-use Closure;
 use Generator;
 use PHPUnit\Framework\TestCase;
-use Supermetrolog\Synchronizer\services\sync\interfaces\SourceRepositoryInterface;
-use Supermetrolog\Synchronizer\services\sync\interfaces\StreamInterface;
+use Supermetrolog\Synchronizer\interfaces\SourceRepositoryInterface;
+use Supermetrolog\Synchronizer\interfaces\StreamInterface;
 
 class SourceRepository extends TestCase
 {
