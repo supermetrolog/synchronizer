@@ -1,5 +1,7 @@
 <?php
 
+namespace tests;
+
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Supermetrolog\Synchronizer\interfaces\AlreadySynchronizedRepositoryInterface;
@@ -10,7 +12,7 @@ use tests\unit\mocks\AlreadySynchronizedRepo;
 use tests\unit\mocks\SourceRepository;
 use tests\unit\mocks\TargetRepository;
 
-class SyncTest  extends TestCase
+class SyncTest extends TestCase
 {
     private SourceRepositoryInterface $sourceRepo;
     private AlreadySynchronizedRepositoryInterface $alreadyRepoEmpty;
@@ -51,16 +53,22 @@ class SyncTest  extends TestCase
         /** @var \PHPUnit\Framework\MockObject\MockObject $targetRepo */
         $targetRepo = $this->targetRepo;
         $files = [];
-        $targetRepo->expects($this->exactly(10))->method('create')->will($this->returnCallback(function ($file) use (&$files) {
-            $files[] = $file;
-            return true;
-        }));
+        $targetRepo
+            ->expects($this->exactly(10))
+            ->method('create')
+            ->will($this->returnCallback(function ($file) use (&$files) {
+                $files[] = $file;
+                return true;
+            }));
         /** @var \PHPUnit\Framework\MockObject\MockObject $alreadyRepo */
         $alreadyRepo = $this->alreadyRepoEmpty;
 
         $sync = new Synchronizer($this->sourceRepo, $this->targetRepo, $this->alreadyRepoEmpty, $this->logger);
         $sync->load();
-        $alreadyRepo->expects($this->once())->method('updateRepository')->with($sync->getCreatingFiles(), [], []);
+        $alreadyRepo
+            ->expects($this->once())
+            ->method('updateRepository')
+            ->with($sync->getCreatingFiles(), [], []);
         $sync->sync();
         $this->assertEquals($files, SourceRepository::getFiles());
         $this->assertEquals($sync->getCreatingFiles(), SourceRepository::getFiles());
@@ -71,26 +79,38 @@ class SyncTest  extends TestCase
         /** @var \PHPUnit\Framework\MockObject\MockObject $targetRepo */
         $targetRepo = $this->targetRepo;
         $createdFiles = [];
-        $targetRepo->expects($this->exactly(5))->method('create')->will($this->returnCallback(function ($file) use (&$createdFiles) {
-            $createdFiles[] = $file;
-            return true;
-        }));
+        $targetRepo
+            ->expects($this->exactly(5))
+            ->method('create')
+            ->will($this->returnCallback(function ($file) use (&$createdFiles) {
+                $createdFiles[] = $file;
+                return true;
+            }));
         $changedFiles = [];
-        $targetRepo->expects($this->once())->method('update')->will($this->returnCallback(function ($file) use (&$changedFiles) {
-            $changedFiles[] = $file;
-            return true;
-        }));
+        $targetRepo
+            ->expects($this->once())
+            ->method('update')
+            ->will($this->returnCallback(function ($file) use (&$changedFiles) {
+                $changedFiles[] = $file;
+                return true;
+            }));
         $removedFiles = [];
-        $targetRepo->expects($this->once())->method('remove')->will($this->returnCallback(function ($file) use (&$removedFiles) {
-            $removedFiles[] = $file;
-            return true;
-        }));
+        $targetRepo
+            ->expects($this->once())
+            ->method('remove')
+            ->will($this->returnCallback(function ($file) use (&$removedFiles) {
+                $removedFiles[] = $file;
+                return true;
+            }));
         /** @var \PHPUnit\Framework\MockObject\MockObject $alreadyRepo */
         $alreadyRepo = $this->alreadyRepoNotEmpty;
 
         $sync = new Synchronizer($this->sourceRepo, $this->targetRepo, $this->alreadyRepoNotEmpty, $this->logger);
         $sync->load();
-        $alreadyRepo->expects($this->once())->method('updateRepository')->with($sync->getCreatingFiles(), $sync->getChangingFiles(), $sync->getRemovingFiles());
+        $alreadyRepo
+            ->expects($this->once())
+            ->method('updateRepository')
+            ->with($sync->getCreatingFiles(), $sync->getChangingFiles(), $sync->getRemovingFiles());
         $sync->sync();
 
         $this->assertEquals($createdFiles, $sync->getCreatingFiles());

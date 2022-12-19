@@ -10,9 +10,11 @@
         "file"
     ],
     "scripts": {
-        "test": "./vendor/bin/phpunit",
+        "test": "composer phpunit & composer phpstan & composer phpcbf & composer phpcs",
+        "phpunit": "./vendor/bin/phpunit",
         "phpstan": "./vendor/bin/phpstan analyse --xdebug",
-        "phpcs": "./vendor/bin/phpcs"
+        "phpcs": "./vendor/bin/phpcs -p -w",
+        "phpcbf": "./vendor/bin/phpcbf -p -w"
     },
     "authors": [{
         "name": "supermetrolog",

@@ -30,8 +30,12 @@ class Synchronizer
 
     private LoggerInterface $logger;
 
-    public function __construct(SourceRepositoryInterface $baseFileRepository, TargetRepositoryInterface $targetFileRepository, AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository, LoggerInterface $logger)
-    {
+    public function __construct(
+        SourceRepositoryInterface $baseFileRepository,
+        TargetRepositoryInterface $targetFileRepository,
+        AlreadySynchronizedRepositoryInterface $alreadySynchronizedRepository,
+        LoggerInterface $logger
+    ) {
         $this->baseFileRepository = $baseFileRepository;
         $this->targetFileRepository = $targetFileRepository;
         $this->alreadySynchronizedRepository = $alreadySynchronizedRepository;
@@ -49,8 +53,9 @@ class Synchronizer
     {
         $stream = $this->baseFileRepository->getStream();
         foreach ($stream->read() as $file) {
-            if ($file->isDir())
+            if ($file->isDir()) {
                 $this->logger->info("----- Processed directory: " . $file->getUniqueName());
+            }
 
             $this->creatingFiles[] = $file;
         }
@@ -59,8 +64,9 @@ class Synchronizer
     {
         $stream = $this->baseFileRepository->getStream();
         foreach ($stream->read() as $file) {
-            if ($file->isDir())
+            if ($file->isDir()) {
                 $this->logger->info("----- Processed directory: " . $file->getUniqueName());
+            }
 
             $fileInSyncReader = $this->alreadySynchronizedRepository->findFile($file);
             if ($fileInSyncReader === null) {
@@ -82,7 +88,10 @@ class Synchronizer
                 continue;
             }
         }
-        $this->removingFiles = array_merge($this->removingFiles, $this->alreadySynchronizedRepository->getNotDirtyFiles());
+        $this->removingFiles = array_merge(
+            $this->removingFiles,
+            $this->alreadySynchronizedRepository->getNotDirtyFiles()
+        );
     }
 
     /**
@@ -118,7 +127,11 @@ class Synchronizer
         $this->removeFiles();
         $this->createFiles();
         $this->changeFiles();
-        $this->alreadySynchronizedRepository->updateRepository($this->creatingFiles, $this->changingFiles, $this->removingFiles);
+        $this->alreadySynchronizedRepository->updateRepository(
+            $this->creatingFiles,
+            $this->changingFiles,
+            $this->removingFiles
+        );
     }
     private function changeFiles(): void
     {
@@ -166,18 +179,22 @@ class Synchronizer
 
     private function createFileInTargetRepo(FileInterface $file): void
     {
-        if (key_exists($file->getUniqueName(), $this->createdFiles)) return;
+        if (key_exists($file->getUniqueName(), $this->createdFiles)) {
+            return;
+        }
 
         $this->logger->info("----- Creating file: " . $file->getUniqueName());
-        if (!$this->targetFileRepository->create($file, $this->baseFileRepository->getContent($file)))
+        if (!$this->targetFileRepository->create($file, $this->baseFileRepository->getContent($file))) {
             throw new LogicException("error when create file");
+        }
 
         $this->createdFiles[$file->getUniqueName()] = $file;
     }
     private function updateFileInTargetRepo(FileInterface $file): void
     {
         $this->logger->info("----- Updating file: " . $file->getUniqueName());
-        if (!$this->targetFileRepository->update($file, $this->baseFileRepository->getContent($file)))
+        if (!$this->targetFileRepository->update($file, $this->baseFileRepository->getContent($file))) {
             throw new LogicException("error when update file");
+        }
     }
 }
