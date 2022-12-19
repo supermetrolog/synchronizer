@@ -7,9 +7,13 @@ use Supermetrolog\Synchronizer\interfaces\FileInterface;
 
 class File extends TestCase
 {
-    public static function getMocks(array $params)
+    /**
+     * @return FileInterface[]
+     * @param array<array<string, mixed>> $params
+     */
+    public static function getMocks(array $params): array
     {
-        $self = new static();
+        $self = new self();
 
         $files = [];
 
@@ -19,8 +23,10 @@ class File extends TestCase
 
         return $files;
     }
-
-    private function getMock(?array $params)
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function getMock(?array $params): ?FileInterface
     {
         if ($params === null) {
             return null;
@@ -31,6 +37,7 @@ class File extends TestCase
         $fileMock->method("getHash")->willReturn($params['hash']);
         $fileMock->method("getParent")->willReturn($this->getMock($params['parent']));
         $fileMock->method("getUniqueName")->willReturn($params['uniqueName']);
+        /** @var FileInterface $fileMock */
         return $fileMock;
     }
 }

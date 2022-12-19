@@ -10,7 +10,7 @@ class TargetRepository extends TestCase
 {
     public static function getMock(): TargetRepositoryInterface
     {
-        $self = new static();
+        $self = new self();
         return $self->mock();
     }
 
@@ -41,6 +41,9 @@ class TargetRepository extends TestCase
     {
         return File::getMocks(self::getFilesParams());
     }
+    /**
+     * @return array<array<string, mixed>>
+     */
     public static function getFilesParams(): array
     {
         $dir_1 = [

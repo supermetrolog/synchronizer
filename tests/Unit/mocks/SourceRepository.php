@@ -6,31 +6,33 @@ use Generator;
 use PHPUnit\Framework\TestCase;
 use Supermetrolog\Synchronizer\interfaces\SourceRepositoryInterface;
 use Supermetrolog\Synchronizer\interfaces\StreamInterface;
+use Supermetrolog\Synchronizer\interfaces\FileInterface;
 
 class SourceRepository extends TestCase
 {
     public static function getMock(): SourceRepositoryInterface
     {
-        $self = new static();
+        $self = new self();
 
-        /** @var StreamInterface $streamMock */
         $streamMock = $self->getStreamMock();
-        /** @var SourceRepositoryInterface $sourceRepoMock */
         $sourceRepoMock = $self->getSourceRepoMock($streamMock);
         return $sourceRepoMock;
     }
-    public function getSourceRepoMock(StreamInterface $streamMock)
+
+    public function getSourceRepoMock(StreamInterface $streamMock): SourceRepositoryInterface
     {
         /** @var \PHPUnit\Framework\MockObject\MockObject $sourceRepoMock */
         $sourceRepoMock = $this->createMock(SourceRepositoryInterface::class);
         $sourceRepoMock->method("getStream")->willReturn($streamMock);
+        /** @var SourceRepositoryInterface $sourceRepoMock */
         return $sourceRepoMock;
     }
-    public function getStreamMock()
+    public function getStreamMock(): StreamInterface
     {
         /** @var \PHPUnit\Framework\MockObject\MockObject $streamMock */
         $streamMock = $this->createMock(StreamInterface::class);
         $streamMock->method("read")->will($this->returnCallback([$this, 'streamReadCallback']));
+        /** @var StreamInterface $streamMock */
         return $streamMock;
     }
 
@@ -41,12 +43,16 @@ class SourceRepository extends TestCase
             yield $file;
         }
     }
-
+    /**
+     * @return FileInterface[]
+     */
     public static function getFiles(): array
     {
         return File::getMocks(self::getFilesParams());
     }
-
+    /**
+     * @return array<array<string, mixed>>
+     */
     public static function getFilesParams(): array
     {
         $dir_1 = [

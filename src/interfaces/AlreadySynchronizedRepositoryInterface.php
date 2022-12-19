@@ -2,13 +2,18 @@
 
 namespace Supermetrolog\Synchronizer\interfaces;
 
+/**
+ * Репозиторий, который хранит список синхронизированных файлов при прошлой синхронизации
+ */
 interface AlreadySynchronizedRepositoryInterface
 {
     public function isEmpty(): bool;
     public function findFile(FileInterface $file): ?FileInterface;
     public function markFileAsDirty(FileInterface $file): void;
+
     /** @return FileInterface[] */
     public function getNotDirtyFiles(): array;
+
     /**
      * @param FileInterface[] $createdFiles
      * @param FileInterface[] $updatedFiles

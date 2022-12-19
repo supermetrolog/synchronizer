@@ -10,7 +10,7 @@ class AlreadySynchronizedRepo extends TestCase
 {
     public static function getEmptyMock(): AlreadySynchronizedRepositoryInterface
     {
-        $self = new static();
+        $self = new self();
         return $self->emptyMock();
     }
 
@@ -27,11 +27,11 @@ class AlreadySynchronizedRepo extends TestCase
 
     public static function getNotEmptyMock(): AlreadySynchronizedRepositoryInterface
     {
-        $self = new static;
+        $self = new self();
         return $self->notEmptyMock();
     }
 
-    public function notEmptyMock()
+    public function notEmptyMock(): AlreadySynchronizedRepositoryInterface
     {
         /** @var \PHPUnit\Framework\MockObject\MockObject $mock */
         $mock = $this->createMock(AlreadySynchronizedRepositoryInterface::class);
@@ -62,6 +62,9 @@ class AlreadySynchronizedRepo extends TestCase
     {
         return File::getMocks(self::getFilesParams());
     }
+    /**
+     * @return array<array<string, mixed>>
+     */
     public static function getFilesParams(): array
     {
         $dir_1 = [

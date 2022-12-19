@@ -11,7 +11,8 @@
     ],
     "scripts": {
         "test": "./vendor/bin/phpunit -c phpunit.xml",
-        "analyse": "./vendor/bin/phpstan analyse src --level=6"
+        "phpstan": "./vendor/bin/phpstan analyse src tests --level=6",
+        "phpcs": "./vendor/bin/phpcs src -v"
     },
     "authors": [{
         "name": "supermetrolog",
