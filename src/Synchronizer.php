@@ -162,7 +162,8 @@ class Synchronizer
         foreach ($this->removingFiles as $file) {
             $this->logger->info("----- Removing file: " . $file->getUniqueName());
             if (!$this->repositories->targetRepo->remove($file)) {
-                throw new LogicException("error when removing file");
+				$this->logger->error("error when removing file");
+//                throw new LogicException("error when removing file");
             }
         }
     }
@@ -175,7 +176,8 @@ class Synchronizer
 
         $this->logger->info("----- Creating file: " . $file->getUniqueName());
         if (!$this->repositories->targetRepo->create($file, $this->repositories->sourceRepo->getContent($file))) {
-            throw new LogicException("error when create file");
+	        $this->logger->error("error when create file");
+//            throw new LogicException("error when create file");
         }
 
         $this->createdFiles[$file->getUniqueName()] = $file;
@@ -184,7 +186,8 @@ class Synchronizer
     {
         $this->logger->info("----- Updating file: " . $file->getUniqueName());
         if (!$this->repositories->targetRepo->update($file, $this->repositories->sourceRepo->getContent($file))) {
-            throw new LogicException("error when update file");
+	        $this->logger->error("error when update file");
+//            throw new LogicException("error when update file");
         }
     }
 }
